@@ -1,0 +1,143 @@
+import React, { useState, useMemo } from 'react';
+import { BarChart3, Users, Building2, CheckCircle, XCircle, Download } from 'lucide-react';
+import ClientsTable from '../components/ClientsTable';
+import AnalyticsChart from '../components/AnalyticsChart';
+import { exportToExcel } from '../utils/export';
+import { mockClients } from '../data/mockClients';
+
+const Dashboard = () => {
+  const [filter, setFilter] = useState('all');
+  const [paymentFilter, setPaymentFilter] = useState('all');
+  const [registrationFilter, setRegistrationFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
+
+  const stats = useMemo(() => {
+    const totalClients = mockClients.length;
+    const empresas = mockClients.filter(c => c.type === 'business').length;
+    const validados = mockClients.filter(c => c.status === 'registered').length;
+    const pendientes = mockClients.filter(c => c.status === 'waiting').length;
+
+    return [
+      { title: 'Total Clientes', value: totalClients.toString(), icon: Users, color: 'bg-blue-500' },
+      { title: 'Empresas', value: empresas.toString(), icon: Building2, color: 'bg-purple-500' },
+      { title: 'Validados SUBTEL', value: validados.toString(), icon: CheckCircle, color: 'bg-green-500' },
+      { title: 'Pendientes', value: pendientes.toString(), icon: XCircle, color: 'bg-red-500' },
+    ];
+  }, []);
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
+        <button
+          onClick={() => exportToExcel(mockClients, 'dashboard-export')}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <Download size={20} />
+          Exportar Planilla
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <div key={stat.title} className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-lg ${stat.color}`}>
+                <stat.icon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">{stat.title}</p>
+                <p className="text-2xl font-semibold">{stat.value}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Análisis Mensual
+            </h2>
+          </div>
+          <AnalyticsChart data={mockClients} />
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold mb-4">Distribución de Clientes</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Empresas</span>
+              <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-purple-500 h-2.5 rounded-full" 
+                  style={{ 
+                    width: `${(mockClients.filter(c => c.type === 'business').length / mockClients.length) * 100}%` 
+                  }}
+                ></div>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Personas</span>
+              <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-500 h-2.5 rounded-full" 
+                  style={{ 
+                    width: `${(mockClients.filter(c => c.type === 'personal').length / mockClients.length) * 100}%` 
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">Listado de Clientes</h2>
+            <div className="flex gap-2">
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="px-3 py-2 border rounded-lg text-sm"
+              >
+                <option value="all">Todos</option>
+                <option value="business">Empresas</option>
+                <option value="personal">Personas</option>
+              </select>
+              <select
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value)}
+                className="px-3 py-2 border rounded-lg text-sm"
+              >
+                <option value="all">Todos los Pagos</option>
+                <option value="paid">Pagados</option>
+                <option value="pending">Pendientes</option>
+              </select>
+              <select
+                value={registrationFilter}
+                onChange={(e) => setRegistrationFilter(e.target.value)}
+                className="px-3 py-2 border rounded-lg text-sm"
+              >
+                <option value="all">Todos los Estados</option>
+                <option value="registered">Registrados</option>
+                <option value="waiting">En Espera</option>
+              </select>
+            </div>
+          </div>
+          <ClientsTable 
+            filter={filter} 
+            paymentFilter={paymentFilter}
+            registrationFilter={registrationFilter}
+            monthFilter={monthFilter}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
