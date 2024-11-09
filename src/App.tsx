@@ -1,13 +1,13 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
-import Layout from './components/Layout';
+import React from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import Dashboard from "./pages/Dashboard";
+import Clients from "./pages/Clients";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+import Layout from "./components/Layout";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();

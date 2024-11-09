@@ -1,36 +1,71 @@
-import React, { useState, useMemo } from 'react';
-import { BarChart3, Users, Building2, CheckCircle, XCircle, Download } from 'lucide-react';
-import ClientsTable from '../components/ClientsTable';
-import AnalyticsChart from '../components/AnalyticsChart';
-import { exportToExcel } from '../utils/export';
-import { mockClients } from '../data/mockClients';
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  BarChart3,
+  Building2,
+  CheckCircle,
+  Download,
+  Users,
+  XCircle,
+} from "lucide-react";
+import ClientsTable from "../components/ClientsTable";
+import AnalyticsChart from "../components/AnalyticsChart";
+import { exportToExcel } from "../utils/export";
+import { mockClients } from "../data/mockClients";
+import useClientStore from "../store/clients";
 
 const Dashboard = () => {
-  const [filter, setFilter] = useState('all');
-  const [paymentFilter, setPaymentFilter] = useState('all');
-  const [registrationFilter, setRegistrationFilter] = useState('all');
-  const [monthFilter, setMonthFilter] = useState('all');
+  const [filter, setFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
+  const [registrationFilter, setRegistrationFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+
+  const clients = useClientStore((state) => state.clients);
+  const fetchClients = useClientStore((state) => state.fetchClients);
+
+  useEffect(() => {
+    (async () => await fetchClients())();
+  }, []);
 
   const stats = useMemo(() => {
-    const totalClients = mockClients.length;
-    const empresas = mockClients.filter(c => c.type === 'business').length;
-    const validados = mockClients.filter(c => c.status === 'registered').length;
-    const pendientes = mockClients.filter(c => c.status === 'waiting').length;
+    const totalClients = clients.length;
+    const empresas = clients.filter((c) => c.Account.is_business).length;
+    const validados = clients.filter((c) => c.Account.is_active).length;
+    const pendientes = clients.filter((c) => !c.Account.is_active).length;
 
     return [
-      { title: 'Total Clientes', value: totalClients.toString(), icon: Users, color: 'bg-blue-500' },
-      { title: 'Empresas', value: empresas.toString(), icon: Building2, color: 'bg-purple-500' },
-      { title: 'Validados SUBTEL', value: validados.toString(), icon: CheckCircle, color: 'bg-green-500' },
-      { title: 'Pendientes', value: pendientes.toString(), icon: XCircle, color: 'bg-red-500' },
+      {
+        title: "Total Clientes",
+        value: totalClients.toString(),
+        icon: Users,
+        color: "bg-blue-500",
+      },
+      {
+        title: "Empresas",
+        value: empresas.toString(),
+        icon: Building2,
+        color: "bg-purple-500",
+      },
+      {
+        title: "Validados SUBTEL",
+        value: validados.toString(),
+        icon: CheckCircle,
+        color: "bg-green-500",
+      },
+      {
+        title: "Pendientes",
+        value: pendientes.toString(),
+        icon: XCircle,
+        color: "bg-red-500",
+      },
     ];
-  }, []);
+  }, [clients]);
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
-          onClick={() => exportToExcel(mockClients, 'dashboard-export')}
+          onClick={() => exportToExcel(mockClients, "dashboard-export")}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
           <Download size={20} />
@@ -62,19 +97,25 @@ const Dashboard = () => {
               Análisis Mensual
             </h2>
           </div>
-          <AnalyticsChart data={mockClients} />
+          <AnalyticsChart />
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Distribución de Clientes</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Distribución de Clientes
+          </h2>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Empresas</span>
               <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-purple-500 h-2.5 rounded-full" 
-                  style={{ 
-                    width: `${(mockClients.filter(c => c.type === 'business').length / mockClients.length) * 100}%` 
+                <div
+                  className="bg-purple-500 h-2.5 rounded-full"
+                  style={{
+                    width: `${
+                      (mockClients.filter((c) => c.type === "business").length /
+                        mockClients.length) *
+                      100
+                    }%`,
                   }}
                 ></div>
               </div>
@@ -82,10 +123,14 @@ const Dashboard = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Personas</span>
               <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-blue-500 h-2.5 rounded-full" 
-                  style={{ 
-                    width: `${(mockClients.filter(c => c.type === 'personal').length / mockClients.length) * 100}%` 
+                <div
+                  className="bg-blue-500 h-2.5 rounded-full"
+                  style={{
+                    width: `${
+                      (mockClients.filter((c) => c.type === "personal").length /
+                        mockClients.length) *
+                      100
+                    }%`,
                   }}
                 ></div>
               </div>
@@ -128,8 +173,8 @@ const Dashboard = () => {
               </select>
             </div>
           </div>
-          <ClientsTable 
-            filter={filter} 
+          <ClientsTable
+            filter={filter}
             paymentFilter={paymentFilter}
             registrationFilter={registrationFilter}
             monthFilter={monthFilter}

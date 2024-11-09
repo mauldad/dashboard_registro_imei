@@ -6,9 +6,9 @@ export interface Client {
   nacionalidad: string;
   email: string;
   whatsapp: string;
-  type: 'business' | 'personal';
-  status: 'registered' | 'waiting';
-  paymentStatus: 'paid' | 'pending';
+  type: "business" | "personal";
+  status: "registered" | "waiting";
+  paymentStatus: "paid" | "pending";
   imei1: {
     numero: string;
     marca: string;
@@ -25,4 +25,42 @@ export interface Client {
   };
   totalPago: number;
   fechaPago: string;
+}
+
+export interface IOrder {
+  order_number: string;
+  total_paid: number;
+  paid: boolean;
+  created_at: string;
+  Imei: IImei[];
+  Account: IAccount;
+}
+
+interface IImei {
+  imei_number: string;
+  brand: string;
+  model: string;
+}
+
+interface IAccount {
+  rut: string;
+  email: string;
+  Business: IBusiness | null;
+  Personal: IPersonal | null;
+  has_registration: boolean;
+  is_active: boolean;
+  is_business: boolean;
+}
+
+interface IBusiness {
+  business_name: string;
+}
+
+interface IPersonal {
+  last_name: string;
+  first_name: string;
+  nationality: string;
+  phone_number: string;
+  has_antivirus: boolean;
+  has_insurance: boolean;
 }
