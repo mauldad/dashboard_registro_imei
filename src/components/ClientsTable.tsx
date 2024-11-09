@@ -1,96 +1,139 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
-  getFilteredRowModel,
-} from '@tanstack/react-table';
-import { CheckCircle, Clock, Building2, User, Smartphone, Shield, CreditCard, DollarSign, Calendar, Pencil, Trash2, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { mockClients } from '../data/mockClients';
-import type { Client } from '../types/client';
+} from "@tanstack/react-table";
+import {
+  Building2,
+  Calendar,
+  CheckCircle,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Clock,
+  CreditCard,
+  DollarSign,
+  Pencil,
+  Shield,
+  Smartphone,
+  Trash2,
+  User,
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { mockClients } from "../data/mockClients";
+import type { Client, IOrder } from "../types/client";
+import useClientStore from "../store/clients";
 
-const columnHelper = createColumnHelper<Client>();
+const columnHelper = createColumnHelper<IOrder>();
 
 const columns = [
-  columnHelper.accessor('id', {
-    header: 'ID',
-    cell: (info) => <span className="font-mono text-xs">{info.getValue()}</span>,
-  }),
-  columnHelper.accessor('rut', {
-    header: 'RUT',
-  }),
-  columnHelper.accessor(row => `${row.nombres} ${row.apellidos}`, {
-    id: 'nombreCompleto',
-    header: 'Nombre Completo',
+  columnHelper.accessor("order_number", {
+    header: "ID",
     cell: (info) => (
-      <div className="flex items-center gap-2">
-        {info.row.original.type === 'business' ? (
-          <Building2 className="w-4 h-4 text-purple-500" />
-        ) : (
-          <User className="w-4 h-4 text-blue-500" />
-        )}
-        {info.getValue()}
-      </div>
+      <span className="font-mono text-xs">{info.getValue()}</span>
     ),
   }),
-  columnHelper.accessor('imei1.numero', {
-    header: 'IMEI Principal',
-    cell: (info) => (
-      <div className="flex items-center gap-2">
-        <Smartphone className="w-4 h-4 text-gray-500" />
-        {info.getValue()}
-      </div>
-    ),
+  columnHelper.accessor("Account.rut", {
+    header: "RUT",
   }),
-  columnHelper.accessor('servicios', {
-    header: 'Servicios',
-    cell: (info) => (
-      <div className="flex flex-col gap-1">
-        {info.getValue().registroIMEI && (
-          <span className="inline-flex items-center gap-1 text-sm">
-            <Smartphone className="w-4 h-4 text-blue-500" />
-            Registro IMEI
-          </span>
-        )}
-        {info.getValue().antivirusPremium && (
-          <span className="inline-flex items-center gap-1 text-sm">
-            <Shield className="w-4 h-4 text-green-500" />
-            Antivirus Premium
-          </span>
-        )}
-      </div>
-    ),
+  columnHelper.accessor(
+    (row) =>
+      row.Account.is_business
+        ? row.Account.Business?.business_name
+        : `${row.Account.Personal?.first_name} ${row.Account.Personal?.last_name}`,
+    {
+      id: "nombreCompleto",
+      header: "Nombre Completo",
+      cell: (info) => (
+        <div className="flex items-center gap-2">
+          {info.row.original.Account.is_business ? (
+            <Building2 className="w-4 h-4 text-purple-500" />
+          ) : (
+            <User className="w-4 h-4 text-blue-500" />
+          )}
+          {info.getValue()}
+        </div>
+      ),
+    },
+  ),
+  columnHelper.accessor((row) => row.Imei.map((imei) => imei.imei_number), {
+    header: "IMEI Principal",
+    cell: (info) =>
+      info.getValue().map((imei, index) => (
+        <div className="flex items-center gap-2" key={index}>
+          <Smartphone className="w-4 h-4 text-gray-500" />
+          {imei}
+        </div>
+      )),
   }),
-  columnHelper.accessor('fechaPago', {
-    header: 'Fecha',
+  columnHelper.accessor(
+    (row) =>
+      row.Account.is_business
+        ? [true, false, false]
+        : [
+            true,
+            row.Account.Personal?.has_antivirus,
+            row.Account.Personal?.has_insurance,
+          ],
+    {
+      header: "Servicios",
+      cell: (info) => (
+        <div className="flex flex-col gap-1">
+          {info.getValue()[0] && (
+            <span className="inline-flex items-center gap-1 text-sm">
+              <Smartphone className="w-4 h-4 text-blue-500" />
+              Registro IMEI
+            </span>
+          )}
+          {info.getValue()[1] && (
+            <span className="inline-flex items-center gap-1 text-sm">
+              <Shield className="w-4 h-4 text-green-500" />
+              Antivirus Premium
+            </span>
+          )}
+          {info.getValue()[2] && (
+            <span className="inline-flex items-center gap-1 text-sm">
+              <Shield className="w-4 h-4 text-green-500" />
+              Seguro de Equipo
+            </span>
+          )}
+        </div>
+      ),
+    },
+  ),
+  columnHelper.accessor("created_at", {
+    header: "Fecha",
     cell: (info) => (
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4 text-gray-500" />
-        {format(parseISO(info.getValue()), 'dd MMM yyyy', { locale: es })}
+        {format(parseISO(info.getValue()), "dd MMM yyyy", { locale: es })}
       </div>
     ),
   }),
-  columnHelper.accessor('totalPago', {
-    header: 'Total Pagado',
+  columnHelper.accessor("total_paid", {
+    header: "Total Pagado",
     cell: (info) => (
       <div className="flex items-center gap-1">
         <DollarSign className="w-4 h-4 text-green-600" />
-        {info.getValue().toLocaleString('es-CL', {
-          style: 'currency',
-          currency: 'CLP'
+        {info.getValue().toLocaleString("es-CL", {
+          style: "currency",
+          currency: "CLP",
         })}
       </div>
     ),
   }),
-  columnHelper.accessor('paymentStatus', {
-    header: 'Estado Pago',
+  columnHelper.accessor("paid", {
+    header: "Estado Pago",
     cell: (info) => (
       <div className="flex items-center gap-1">
-        {info.getValue() === 'paid' ? (
+        {info.getValue() ? (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
             <CreditCard className="w-4 h-4" />
             Pagado
@@ -104,13 +147,13 @@ const columns = [
       </div>
     ),
   }),
-  columnHelper.accessor('status', {
-    header: 'Estado Registro',
+  columnHelper.accessor("Account.is_active", {
+    header: "Estado Registro",
     cell: (info) => {
       const [isOpen, setIsOpen] = useState(false);
       const [status, setStatus] = useState(info.getValue());
 
-      const handleStatusChange = (newStatus: 'registered' | 'waiting') => {
+      const handleStatusChange = (newStatus: boolean) => {
         setStatus(newStatus);
         setIsOpen(false);
       };
@@ -120,13 +163,13 @@ const columns = [
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              status === 'registered'
-                ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+              status
+                ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                : "bg-gray-50 text-gray-700 hover:bg-gray-100"
             }`}
           >
             <span className="flex items-center gap-2">
-              {status === 'registered' ? (
+              {status ? (
                 <>
                   <CheckCircle className="w-4 h-4" />
                   Registrado
@@ -144,14 +187,14 @@ const columns = [
           {isOpen && (
             <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border">
               <button
-                onClick={() => handleStatusChange('registered')}
+                onClick={() => handleStatusChange(true)}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
                 <CheckCircle className="w-4 h-4 text-blue-600" />
                 Registrado
               </button>
               <button
-                onClick={() => handleStatusChange('waiting')}
+                onClick={() => handleStatusChange(false)}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
                 <Clock className="w-4 h-4 text-gray-600" />
@@ -164,19 +207,23 @@ const columns = [
     },
   }),
   columnHelper.display({
-    id: 'actions',
-    header: 'Acciones',
-    cell: (info) => (
+    id: "actions",
+    header: "Acciones",
+    cell: () => (
       <div className="flex items-center gap-2">
         <button
-          onClick={() => {/* Handle edit */}}
+          onClick={() => {
+            /* Handle edit */
+          }}
           className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           title="Editar registro"
         >
           <Pencil className="w-4 h-4" />
         </button>
         <button
-          onClick={() => {/* Handle delete */}}
+          onClick={() => {
+            /* Handle delete */
+          }}
           className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           title="Eliminar registro"
         >
@@ -195,37 +242,51 @@ interface ClientsTableProps {
   searchQuery: string;
 }
 
-const ClientsTable = ({ filter, paymentFilter, registrationFilter, monthFilter, searchQuery }: ClientsTableProps) => {
+const ClientsTable = ({
+  filter,
+  paymentFilter,
+  registrationFilter,
+  monthFilter,
+  searchQuery,
+}: ClientsTableProps) => {
+  const clients = useClientStore((state) => state.clients);
+
   const filteredData = React.useMemo(() => {
-    let result = mockClients;
+    let result = clients;
 
-    if (filter !== 'all') {
-      result = result.filter((client) => client.type === filter);
+    if (filter !== "all") {
+      // result = result.filter((client) => client.type === filter);
     }
 
-    if (paymentFilter !== 'all') {
-      result = result.filter((client) => client.paymentStatus === paymentFilter);
+    if (paymentFilter !== "all") {
+      // result = result.filter(
+      //   (client) => client.paymentStatus === paymentFilter,
+      // );
     }
 
-    if (registrationFilter !== 'all') {
-      result = result.filter((client) => client.status === registrationFilter);
+    if (registrationFilter !== "all") {
+      // result = result.filter((client) => client.status === registrationFilter);
     }
 
-    if (monthFilter !== 'all') {
-      result = result.filter((client) => {
-        const clientMonth = format(parseISO(client.fechaPago), 'yyyy-MM');
-        return clientMonth === monthFilter;
-      });
+    if (monthFilter !== "all") {
+      // result = result.filter((client) => {
+      //   const clientMonth = format(parseISO(client.fechaPago), "yyyy-MM");
+      //   return clientMonth === monthFilter;
+      // });
     }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter((client) => 
-        client.rut.toLowerCase().includes(query) ||
-        client.nombres.toLowerCase().includes(query) ||
-        client.apellidos.toLowerCase().includes(query) ||
-        client.imei1.numero.includes(query) ||
-        client.email.toLowerCase().includes(query)
+      result = result.filter(
+        (client) =>
+          client.Account.rut.toLowerCase().includes(query) ||
+          client.Account.Personal?.first_name.toLowerCase().includes(query) ||
+          client.Account.Personal?.last_name.toLowerCase().includes(query) ||
+          client.Account.Business?.business_name
+            .toLowerCase()
+            .includes(query) ||
+          client.Imei.map((imei) => imei.imei_number.includes(query)),
+        // client.email.toLowerCase().includes(query),
       );
     }
 
@@ -259,7 +320,10 @@ const ClientsTable = ({ filter, paymentFilter, registrationFilter, monthFilter, 
                   >
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </th>
                 ))}
               </tr>
@@ -269,7 +333,10 @@ const ClientsTable = ({ filter, paymentFilter, registrationFilter, monthFilter, 
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} className="hover:bg-gray-50">
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    key={cell.id}
+                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -296,9 +363,11 @@ const ClientsTable = ({ filter, paymentFilter, registrationFilter, monthFilter, 
             <ChevronLeft className="w-5 h-5" />
           </button>
           <span className="text-sm text-gray-700">
-            Página{' '}
-            <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> de{' '}
-            <span className="font-medium">{table.getPageCount()}</span>
+            Página{" "}
+            <span className="font-medium">
+              {table.getState().pagination.pageIndex + 1}
+            </span>{" "}
+            de <span className="font-medium">{table.getPageCount()}</span>
           </span>
           <button
             onClick={() => table.nextPage()}
@@ -317,12 +386,12 @@ const ClientsTable = ({ filter, paymentFilter, registrationFilter, monthFilter, 
         </div>
         <select
           value={table.getState().pagination.pageSize}
-          onChange={e => {
+          onChange={(e) => {
             table.setPageSize(Number(e.target.value));
           }}
           className="px-3 py-2 border rounded-lg text-sm"
         >
-          {[10, 20, 30, 40, 50].map(pageSize => (
+          {[10, 20, 30, 40, 50].map((pageSize) => (
             <option key={pageSize} value={pageSize}>
               Mostrar {pageSize}
             </option>
