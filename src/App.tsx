@@ -8,10 +8,11 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Layout from "./components/Layout";
+import useAuthStore from "./store/auth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+  const { token, rememberUser, removeToken } = useAuthStore();
+  return token ? children : <Navigate to="/login" />;
 }
 
 function App() {

@@ -1,18 +1,25 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FileSpreadsheet, Settings, LogOut } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  FileSpreadsheet,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  Users,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import useAuthStore from "../store/auth";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const removeToken = useAuthStore((state) => state.removeToken);
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'Clientes', path: '/clients' },
-    { icon: FileSpreadsheet, label: 'Reportes', path: '/reports' },
-    { icon: Settings, label: 'Configuración', path: '/settings' },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: Users, label: "Clientes", path: "/clients" },
+    { icon: FileSpreadsheet, label: "Reportes", path: "/reports" },
+    { icon: Settings, label: "Configuración", path: "/settings" },
   ];
 
   return (
@@ -20,8 +27,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <aside className="w-64 bg-white border-r border-gray-200">
         <div className="h-16 flex items-center px-6 border-b">
           <div>
-            <h1 className="text-lg font-bold text-gray-800">Registro de IMEI</h1>
-            <p className="text-xs text-gray-600">Sistema de Gestión de MB Services</p>
+            <h1 className="text-lg font-bold text-gray-800">
+              Registro de IMEI
+            </h1>
+            <p className="text-xs text-gray-600">
+              Sistema de Gestión de MB Services
+            </p>
           </div>
         </div>
         <nav className="p-4 space-y-2">
@@ -31,8 +42,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
                 location.pathname === item.path
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
               <item.icon className="w-5 h-5" />
@@ -40,7 +51,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </button>
           ))}
           <button
-            onClick={signOut}
+            onClick={removeToken}
             className="w-full flex items-center gap-3 px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors mt-8"
           >
             <LogOut className="w-5 h-5" />
