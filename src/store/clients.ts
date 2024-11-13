@@ -1,10 +1,17 @@
 import { create } from "zustand";
-import { getClients } from "../data/clients";
+import { getClients, sendEmailUser } from "../data/clients";
 import { IOrder } from "../types/client";
+import supabase from "../data/supabase";
+import { successRegister } from "../assets/mails";
 
 interface ClientStore {
   clients: IOrder[];
   fetchClients: () => Promise<void>;
+  updatePaid: (
+    id: number,
+    firstName: string,
+    lastName: string,
+  ) => Promise<boolean>;
 }
 
 const useClientStore = create<ClientStore>((set, get) => ({
@@ -15,6 +22,33 @@ const useClientStore = create<ClientStore>((set, get) => ({
       return;
     }
     set({ clients });
+  },
+  updatePaid: async (id: number, firstName: string, lastName: string) => {
+    const { data, error } = await supabase.rpc("update_user_active", {
+      p_account_id: id,
+    });
+    const newClients = get().clients.map((client) => {
+      if (client.Account?.id === id) {
+        return {
+          ...client,
+          Account: {
+            ...client.Account,
+            is_active: data,
+          },
+        };
+      }
+      return client;
+    });
+
+    if (data) {
+      await sendEmailUser(
+        id,
+        "Tu cuenta ha sido activada",
+        successRegister(firstName, lastName),
+      );
+    }
+    set({ clients: newClients });
+    return data;
   },
 }));
 

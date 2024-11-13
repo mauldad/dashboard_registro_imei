@@ -27,38 +27,74 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { mockClients } from "../data/mockClients";
-import type { Client, IOrder } from "../types/client";
+import type { IOrder } from "../types/client";
 import useClientStore from "../store/clients";
+import { sendEmailUser } from "../data/clients";
 
 const columnHelper = createColumnHelper<IOrder>();
 
 const columns = [
   columnHelper.accessor("order_number", {
-    header: "ID",
+    header: "Orden",
     cell: (info) => (
       <span className="font-mono text-xs">{info.getValue()}</span>
     ),
   }),
   columnHelper.accessor("Account.rut", {
     header: "RUT",
+    cell: (info) => (
+      <div className="flex items-center gap-2">
+        {!info.row.original.Account?.is_business ? (
+          <a
+            target="_blank"
+            href={info.row.original.Account?.Personal?.id_card_url}
+            className="text-blue-500 hover:text-blue-700 underline"
+          >
+            {info.getValue()}
+          </a>
+        ) : (
+          <span>{info.getValue()}</span>
+        )}
+      </div>
+    ),
   }),
   columnHelper.accessor(
     (row) =>
-      row.Account.is_business
-        ? row.Account.Business?.business_name
-        : `${row.Account.Personal?.first_name} ${row.Account.Personal?.last_name}`,
+      row.Account?.is_business
+        ? row.Account?.Business?.business_name
+        : `${row.Account?.Personal?.first_name} ${row.Account?.Personal?.last_name}`,
     {
       id: "nombreCompleto",
       header: "Nombre Completo",
       cell: (info) => (
         <div className="flex items-center gap-2">
-          {info.row.original.Account.is_business ? (
+          {info.row.original.Account?.is_business ? (
             <Building2 className="w-4 h-4 text-purple-500" />
           ) : (
             <User className="w-4 h-4 text-blue-500" />
           )}
-          {info.getValue()}
+          {info.row.original.Account ? info.getValue() : "Usuario Eliminado"}
+        </div>
+      ),
+    },
+  ),
+  columnHelper.accessor(
+    (row) =>
+      row.Account?.is_business
+        ? row.Account?.Business?.import_receipt_url
+        : row.Account?.Personal?.purchase_receipt_url,
+    {
+      id: "comprobante",
+      header: "Comprobante",
+      cell: (info) => (
+        <div className="flex items-center gap-2">
+          <a
+            target="_blank"
+            href={info.getValue()}
+            className="text-blue-500 hover:text-blue-700 underline"
+          >
+            {info.row.original.Account?.is_business ? "Exportacion" : "Compra"}
+          </a>
         </div>
       ),
     },
@@ -69,18 +105,49 @@ const columns = [
       info.getValue().map((imei, index) => (
         <div className="flex items-center gap-2" key={index}>
           <Smartphone className="w-4 h-4 text-gray-500" />
-          {imei}
+          <div className="flex items-center gap-2">
+            {info.row.original.Imei[index].imei_image ? (
+              <a
+                target="_blank"
+                href={info.row.original.Imei[index].imei_image}
+                className="text-blue-500 hover:text-blue-700 underline"
+              >
+                {imei}
+              </a>
+            ) : (
+              <span>{imei}</span>
+            )}
+          </div>
         </div>
       )),
   }),
+  columnHelper.accessor("imei_excel_url", {
+    id: "excel",
+    header: "Excel de IMEIs",
+    cell: (info) => (
+      <div className="flex items-center gap-2">
+        {info.getValue() ? (
+          <a
+            target="_blank"
+            href={info.getValue()}
+            className="text-blue-500 hover:text-blue-700 underline"
+          >
+            Excel
+          </a>
+        ) : (
+          <span>No hay Excel</span>
+        )}
+      </div>
+    ),
+  }),
   columnHelper.accessor(
     (row) =>
-      row.Account.is_business
+      row.Account?.is_business
         ? [true, false, false]
         : [
             true,
-            row.Account.Personal?.has_antivirus,
-            row.Account.Personal?.has_insurance,
+            row.Account?.Personal?.has_antivirus,
+            row.Account?.Personal?.has_insurance,
           ],
     {
       header: "Servicios",
@@ -152,8 +219,16 @@ const columns = [
     cell: (info) => {
       const [isOpen, setIsOpen] = useState(false);
       const [status, setStatus] = useState(info.getValue());
+      const updatePaid = useClientStore((state) => state.updatePaid);
 
-      const handleStatusChange = (newStatus: boolean) => {
+      const handleStatusChange = async () => {
+        const accountId = info.row.original.Account?.id;
+        if (!accountId) return;
+        const firstName = info.row.original.Account?.Personal
+          ?.first_name as string;
+        const lastName = info.row.original.Account?.Personal
+          ?.last_name as string;
+        const newStatus = await updatePaid(accountId, firstName, lastName);
         setStatus(newStatus);
         setIsOpen(false);
       };
@@ -187,14 +262,14 @@ const columns = [
           {isOpen && (
             <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border">
               <button
-                onClick={() => handleStatusChange(true)}
+                onClick={() => handleStatusChange()}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
                 <CheckCircle className="w-4 h-4 text-blue-600" />
                 Registrado
               </button>
               <button
-                onClick={() => handleStatusChange(false)}
+                onClick={() => handleStatusChange()}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
                 <Clock className="w-4 h-4 text-gray-600" />
@@ -279,10 +354,10 @@ const ClientsTable = ({
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (client) =>
-          client.Account.rut.toLowerCase().includes(query) ||
-          client.Account.Personal?.first_name.toLowerCase().includes(query) ||
-          client.Account.Personal?.last_name.toLowerCase().includes(query) ||
-          client.Account.Business?.business_name
+          client.Account?.rut.toLowerCase().includes(query) ||
+          client.Account?.Personal?.first_name.toLowerCase().includes(query) ||
+          client.Account?.Personal?.last_name.toLowerCase().includes(query) ||
+          client.Account?.Business?.business_name
             .toLowerCase()
             .includes(query) ||
           client.Imei.map((imei) => imei.imei_number.includes(query)),
