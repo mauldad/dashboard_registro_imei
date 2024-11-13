@@ -96,10 +96,10 @@ const Reports = () => {
     const filteredData = clients;
     const stats = {
       total: filteredData.length,
-      business: filteredData.filter((c) => c.Account.is_business).length,
-      personal: filteredData.filter((c) => !c.Account.is_business).length,
-      registered: filteredData.filter((c) => c.Account.is_active).length,
-      waiting: filteredData.filter((c) => !c.Account.is_active).length,
+      business: filteredData.filter((c) => c.Account?.is_business).length,
+      personal: filteredData.filter((c) => !c.Account?.is_business).length,
+      registered: filteredData.filter((c) => c.Account?.is_active).length,
+      waiting: filteredData.filter((c) => !c.Account?.is_active).length,
       totalAmount: filteredData.reduce(
         (sum, client) => sum + client.total_paid,
         0,

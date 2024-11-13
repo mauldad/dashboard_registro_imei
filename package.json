@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@netlify/functions": "^2.8.2",
     "@supabase/supabase-js": "^2.46.1",
     "@tanstack/react-table": "^8.13.2",
     "chart.js": "^4.4.1",
@@ -20,6 +21,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.1",
+    "resend": "^4.0.1-alpha.0",
     "xlsx": "^0.18.5",
     "zustand": "^5.0.1"
   },
