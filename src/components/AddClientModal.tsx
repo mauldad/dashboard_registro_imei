@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
-import type { Client } from '../types/client';
+import React, { useState } from "react";
+import { X } from "lucide-react";
+import type { Client } from "../types/client";
 
 interface AddClientModalProps {
   isOpen: boolean;
@@ -9,27 +9,27 @@ interface AddClientModalProps {
 
 const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
   const [formData, setFormData] = useState({
-    rut: '',
-    nombres: '',
-    apellidos: '',
-    nacionalidad: 'Chile',
-    email: '',
-    whatsapp: '',
-    type: 'personal',
+    rut: "",
+    nombres: "",
+    apellidos: "",
+    nacionalidad: "Chile",
+    email: "",
+    whatsapp: "",
+    type: "personal",
     imei1: {
-      numero: '',
-      marca: '',
-      modelo: ''
+      numero: "",
+      marca: "",
+      modelo: "",
     },
     imei2: {
-      numero: '',
-      marca: '',
-      modelo: ''
+      numero: "",
+      marca: "",
+      modelo: "",
     },
     servicios: {
       registroIMEI: false,
-      antivirusPremium: false
-    }
+      antivirusPremium: false,
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -47,7 +47,10 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
         <div className="p-6 border-b sticky top-0 bg-white z-10">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Nuevo Registro</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -61,7 +64,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
               </label>
               <select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'personal' | 'business' })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    type: e.target.value as "personal" | "business",
+                  })
+                }
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               >
                 <option value="personal">Persona</option>
@@ -76,7 +84,9 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
               <input
                 type="text"
                 value={formData.rut}
-                onChange={(e) => setFormData({ ...formData, rut: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, rut: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-lg text-sm"
                 placeholder="12.345.678-9"
                 required
@@ -90,7 +100,9 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
               <input
                 type="text"
                 value={formData.nombres}
-                onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, nombres: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-lg text-sm"
                 required
               />
@@ -103,7 +115,9 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
               <input
                 type="text"
                 value={formData.apellidos}
-                onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, apellidos: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-lg text-sm"
                 required
               />
@@ -116,7 +130,9 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-lg text-sm"
                 required
               />
@@ -129,7 +145,9 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
               <input
                 type="tel"
                 value={formData.whatsapp}
-                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, whatsapp: e.target.value })
+                }
                 className="w-full px-3 py-2 border rounded-lg text-sm"
                 placeholder="+56 9 1234 5678"
                 required
@@ -147,10 +165,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="text"
                   value={formData.imei1.numero}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    imei1: { ...formData.imei1, numero: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      imei1: { ...formData.imei1, numero: e.target.value },
+                    })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                   required
                 />
@@ -162,10 +182,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="text"
                   value={formData.imei1.marca}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    imei1: { ...formData.imei1, marca: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      imei1: { ...formData.imei1, marca: e.target.value },
+                    })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                   required
                 />
@@ -177,10 +199,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="text"
                   value={formData.imei1.modelo}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    imei1: { ...formData.imei1, modelo: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      imei1: { ...formData.imei1, modelo: e.target.value },
+                    })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                   required
                 />
@@ -189,7 +213,9 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="text-lg font-medium mb-4">IMEI Secundario (Opcional)</h3>
+            <h3 className="text-lg font-medium mb-4">
+              IMEI Secundario (Opcional)
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -198,10 +224,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="text"
                   value={formData.imei2.numero}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    imei2: { ...formData.imei2, numero: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      imei2: { ...formData.imei2, numero: e.target.value },
+                    })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
               </div>
@@ -212,10 +240,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="text"
                   value={formData.imei2.marca}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    imei2: { ...formData.imei2, marca: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      imei2: { ...formData.imei2, marca: e.target.value },
+                    })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
               </div>
@@ -226,10 +256,12 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="text"
                   value={formData.imei2.modelo}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    imei2: { ...formData.imei2, modelo: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      imei2: { ...formData.imei2, modelo: e.target.value },
+                    })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
               </div>
@@ -243,10 +275,15 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="checkbox"
                   checked={formData.servicios.registroIMEI}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    servicios: { ...formData.servicios, registroIMEI: e.target.checked }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      servicios: {
+                        ...formData.servicios,
+                        registroIMEI: e.target.checked,
+                      },
+                    })
+                  }
                   className="rounded text-blue-600"
                 />
                 <span className="text-sm text-gray-700">Registro IMEI</span>
@@ -255,10 +292,15 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
                 <input
                   type="checkbox"
                   checked={formData.servicios.antivirusPremium}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    servicios: { ...formData.servicios, antivirusPremium: e.target.checked }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      servicios: {
+                        ...formData.servicios,
+                        antivirusPremium: e.target.checked,
+                      },
+                    })
+                  }
                   className="rounded text-blue-600"
                 />
                 <span className="text-sm text-gray-700">Antivirus Premium</span>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Calendar,
   Download,
@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { endOfYear, format, startOfYear, subMonths, subYears } from "date-fns";
 import { es } from "date-fns/locale";
-import { mockClients } from "../data/mockClients";
 import { exportToExcel } from "../utils/export";
 import useClientStore from "../store/clients";
 
@@ -20,8 +19,21 @@ const Reports = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MM"));
   const [selectedQuarter, setSelectedQuarter] = useState("1");
   const [selectedSemester, setSelectedSemester] = useState("1");
+  const [loading, setLoading] = useState(false);
 
   const clients = useClientStore((state) => state.clients);
+  const fetchClients = useClientStore((state) => state.fetchClients);
+
+  useEffect(() => {
+    const getClients = async () => {
+      setLoading(true);
+      if (clients.length === 0) {
+        await fetchClients();
+      }
+      setLoading(false);
+    };
+    getClients();
+  }, [clients]);
 
   // Generate years for selection (current year and 2 years back)
   const years = Array.from({ length: 3 }, (_, i) =>
@@ -189,101 +201,121 @@ const Reports = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de Reporte
-              </label>
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-              >
-                <option value="month">Mensual</option>
-                <option value="quarter">Trimestral</option>
-                <option value="semester">Semestral</option>
-                <option value="year">Anual</option>
-              </select>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                <div className="h-10 bg-gray-300 rounded"></div>
+              </div>
+
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                <div className="h-10 bg-gray-300 rounded"></div>
+              </div>
+
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                <div className="h-10 bg-gray-300 rounded"></div>
+              </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo de Reporte
+                </label>
+                <select
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                >
+                  <option value="month">Mensual</option>
+                  <option value="quarter">Trimestral</option>
+                  <option value="semester">Semestral</option>
+                  <option value="year">Anual</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Año
-              </label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Año
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                >
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {timeRange === "month" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mes
+                  </label>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  >
+                    {months.map((month) => (
+                      <option key={month.value} value={month.value}>
+                        {month.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {timeRange === "quarter" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Trimestre
+                  </label>
+                  <select
+                    value={selectedQuarter}
+                    onChange={(e) => setSelectedQuarter(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  >
+                    {quarters.map((quarter) => (
+                      <option key={quarter.value} value={quarter.value}>
+                        {quarter.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {timeRange === "semester" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Semestre
+                  </label>
+                  <select
+                    value={selectedSemester}
+                    onChange={(e) => setSelectedSemester(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  >
+                    {semesters.map((semester) => (
+                      <option key={semester.value} value={semester.value}>
+                        {semester.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-
-            {timeRange === "month" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mes
-                </label>
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                >
-                  {months.map((month) => (
-                    <option key={month.value} value={month.value}>
-                      {month.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {timeRange === "quarter" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Trimestre
-                </label>
-                <select
-                  value={selectedQuarter}
-                  onChange={(e) => setSelectedQuarter(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                >
-                  {quarters.map((quarter) => (
-                    <option key={quarter.value} value={quarter.value}>
-                      {quarter.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {timeRange === "semester" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Semestre
-                </label>
-                <select
-                  value={selectedSemester}
-                  onChange={(e) => setSelectedSemester(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                >
-                  {semesters.map((semester) => (
-                    <option key={semester.value} value={semester.value}>
-                      {semester.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+          )}
 
           <button
+            disabled={loading}
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
           >
             <Download size={20} />
             Exportar Reporte
