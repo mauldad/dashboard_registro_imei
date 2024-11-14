@@ -12,19 +12,28 @@ import AnalyticsChart from "../components/AnalyticsChart";
 import { exportToExcel } from "../utils/export";
 import { mockClients } from "../data/mockClients";
 import useClientStore from "../store/clients";
+import ClientsTableSkeleton from "../components/skeletons/ClientTableSkeleton";
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [registrationFilter, setRegistrationFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
 
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
 
   useEffect(() => {
-    (async () => await fetchClients())();
-  }, []);
+    const getClients = async () => {
+      setLoading(true);
+      if (clients.length === 0) {
+        await fetchClients();
+      }
+      setLoading(false);
+    };
+    getClients();
+  }, [clients]);
 
   const stats = useMemo(() => {
     const totalClients = clients.length;
@@ -65,8 +74,9 @@ const Dashboard = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
-          onClick={() => exportToExcel(mockClients, "dashboard-export")}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          onClick={() => exportToExcel(clients, "dashboard-export")}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
         >
           <Download size={20} />
           Exportar Planilla
@@ -112,8 +122,8 @@ const Dashboard = () => {
                   className="bg-purple-500 h-2.5 rounded-full"
                   style={{
                     width: `${
-                      (mockClients.filter((c) => c.type === "business").length /
-                        mockClients.length) *
+                      (clients.filter((c) => c.Account?.is_business).length /
+                        clients.length) *
                       100
                     }%`,
                   }}
@@ -127,8 +137,8 @@ const Dashboard = () => {
                   className="bg-blue-500 h-2.5 rounded-full"
                   style={{
                     width: `${
-                      (mockClients.filter((c) => c.type === "personal").length /
-                        mockClients.length) *
+                      (clients.filter((c) => !c.Account?.is_business).length /
+                        clients.length) *
                       100
                     }%`,
                   }}
@@ -143,42 +153,55 @@ const Dashboard = () => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold">Listado de Clientes</h2>
-            <div className="flex gap-2">
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="px-3 py-2 border rounded-lg text-sm"
-              >
-                <option value="all">Todos</option>
-                <option value="business">Empresas</option>
-                <option value="personal">Personas</option>
-              </select>
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-                className="px-3 py-2 border rounded-lg text-sm"
-              >
-                <option value="all">Todos los Pagos</option>
-                <option value="paid">Pagados</option>
-                <option value="pending">Pendientes</option>
-              </select>
-              <select
-                value={registrationFilter}
-                onChange={(e) => setRegistrationFilter(e.target.value)}
-                className="px-3 py-2 border rounded-lg text-sm"
-              >
-                <option value="all">Todos los Estados</option>
-                <option value="registered">Registrados</option>
-                <option value="waiting">En Espera</option>
-              </select>
-            </div>
+            {loading ? (
+              <div className="flex gap-3">
+                <div className="px-3 py-2 border rounded-lg bg-gray-200 w-32 h-10 animate-pulse"></div>
+                <div className="px-3 py-2 border rounded-lg bg-gray-200 w-48 h-10 animate-pulse"></div>
+                <div className="px-3 py-2 border rounded-lg bg-gray-200 w-48 h-10 animate-pulse"></div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                >
+                  <option value="all">Todos</option>
+                  <option value="business">Empresas</option>
+                  <option value="personal">Personas</option>
+                </select>
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                >
+                  <option value="all">Todos los Pagos</option>
+                  <option value="paid">Pagados</option>
+                  <option value="pending">Pendientes</option>
+                </select>
+                <select
+                  value={registrationFilter}
+                  onChange={(e) => setRegistrationFilter(e.target.value)}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                >
+                  <option value="all">Todos los Estados</option>
+                  <option value="registered">Registrados</option>
+                  <option value="waiting">En Espera</option>
+                </select>
+              </div>
+            )}
           </div>
-          <ClientsTable
-            filter={filter}
-            paymentFilter={paymentFilter}
-            registrationFilter={registrationFilter}
-            monthFilter={monthFilter}
-          />
+          {loading ? (
+            <ClientsTableSkeleton />
+          ) : (
+            <ClientsTable
+              filter={filter}
+              paymentFilter={paymentFilter}
+              registrationFilter={registrationFilter}
+              monthFilter={monthFilter}
+              clients={clients}
+            />
+          )}
         </div>
       </div>
     </div>

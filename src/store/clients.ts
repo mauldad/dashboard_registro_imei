@@ -12,6 +12,7 @@ interface ClientStore {
     firstName: string,
     lastName: string,
   ) => Promise<boolean>;
+  deleteUser: (id: number, token: string) => Promise<void>;
 }
 
 const useClientStore = create<ClientStore>((set, get) => ({
@@ -49,6 +50,15 @@ const useClientStore = create<ClientStore>((set, get) => ({
     }
     set({ clients: newClients });
     return data;
+  },
+  deleteUser: async (id: number, token: string) => {
+    const { data, error } = await supabase.rpc("delete_user", {
+      p_account_id: id,
+    });
+    const newClients = get().clients.filter((client) => {
+      return client.Account?.id !== id;
+    });
+    set({ clients: newClients });
   },
 }));
 

@@ -30,6 +30,7 @@ import { es } from "date-fns/locale";
 import type { IOrder } from "../types/client";
 import useClientStore from "../store/clients";
 import { sendEmailUser } from "../data/clients";
+import useAuthStore from "../store/auth";
 
 const columnHelper = createColumnHelper<IOrder>();
 
@@ -43,8 +44,9 @@ const columns = [
   columnHelper.accessor("Account.rut", {
     header: "RUT",
     cell: (info) => (
-      <div className="flex items-center gap-2">
-        {!info.row.original.Account?.is_business ? (
+      <div className="flex items-center justify-center gap-2">
+        {!info.row.original.Account?.is_business &&
+        info.row.original.Account?.Personal?.id_card_url ? (
           <a
             target="_blank"
             href={info.row.original.Account?.Personal?.id_card_url}
@@ -53,7 +55,7 @@ const columns = [
             {info.getValue()}
           </a>
         ) : (
-          <span>{info.getValue()}</span>
+          <span>{info.getValue() || "-"}</span>
         )}
       </div>
     ),
@@ -218,12 +220,15 @@ const columns = [
     header: "Estado Registro",
     cell: (info) => {
       const [isOpen, setIsOpen] = useState(false);
-      const [status, setStatus] = useState(info.getValue());
+      const [status, setStatus] = useState(info.getValue() || false);
       const updatePaid = useClientStore((state) => state.updatePaid);
 
       const handleStatusChange = async () => {
         const accountId = info.row.original.Account?.id;
-        if (!accountId) return;
+        if (!accountId) {
+          setIsOpen(false);
+          return;
+        }
         const firstName = info.row.original.Account?.Personal
           ?.first_name as string;
         const lastName = info.row.original.Account?.Personal
@@ -284,28 +289,35 @@ const columns = [
   columnHelper.display({
     id: "actions",
     header: "Acciones",
-    cell: () => (
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => {
-            /* Handle edit */
-          }}
-          className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          title="Editar registro"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => {
-            /* Handle delete */
-          }}
-          className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          title="Eliminar registro"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    ),
+    cell: (info) => {
+      const deleteUser = useClientStore((state) => state.deleteUser);
+      const token = useAuthStore((state) => state.token);
+      return (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              /* Handle edit */
+            }}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Editar registro"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() =>
+              deleteUser(
+                info.row.original.Account?.id as number,
+                token as string,
+              )
+            }
+            className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Eliminar registro"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    },
   }),
 ];
 
@@ -314,7 +326,8 @@ interface ClientsTableProps {
   paymentFilter: string;
   registrationFilter: string;
   monthFilter: string;
-  searchQuery: string;
+  searchQuery?: string;
+  clients: IOrder[];
 }
 
 const ClientsTable = ({
@@ -322,32 +335,39 @@ const ClientsTable = ({
   paymentFilter,
   registrationFilter,
   monthFilter,
-  searchQuery,
+  clients,
+  searchQuery = undefined,
 }: ClientsTableProps) => {
-  const clients = useClientStore((state) => state.clients);
-
   const filteredData = React.useMemo(() => {
     let result = clients;
 
     if (filter !== "all") {
-      // result = result.filter((client) => client.type === filter);
+      result = result.filter((client) =>
+        filter === "business"
+          ? client.Account?.is_business
+          : !client.Account?.is_business,
+      );
     }
 
     if (paymentFilter !== "all") {
-      // result = result.filter(
-      //   (client) => client.paymentStatus === paymentFilter,
-      // );
+      result = result.filter((client) =>
+        paymentFilter === "paid" ? client.paid : !client.paid,
+      );
     }
 
     if (registrationFilter !== "all") {
-      // result = result.filter((client) => client.status === registrationFilter);
+      result = result.filter((client) =>
+        registrationFilter === "registered"
+          ? client.Account?.is_active
+          : !client.Account?.is_active,
+      );
     }
 
     if (monthFilter !== "all") {
-      // result = result.filter((client) => {
-      //   const clientMonth = format(parseISO(client.fechaPago), "yyyy-MM");
-      //   return clientMonth === monthFilter;
-      // });
+      result = result.filter((client) => {
+        const clientMonth = format(parseISO(client.created_at), "yyyy-MM");
+        return clientMonth === monthFilter;
+      });
     }
 
     if (searchQuery) {
@@ -360,8 +380,10 @@ const ClientsTable = ({
           client.Account?.Business?.business_name
             .toLowerCase()
             .includes(query) ||
-          client.Imei.map((imei) => imei.imei_number.includes(query)),
-        // client.email.toLowerCase().includes(query),
+          client.Imei.some((imei) =>
+            imei.imei_number.toLowerCase().includes(query),
+          ) ||
+          client.Account?.email.toLowerCase().includes(query),
       );
     }
 
