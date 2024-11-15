@@ -62,3 +62,71 @@ export async function sendEmailUser(
     throw new Error("Send email failed");
   }
 }
+
+const transformToPersonalUser = (formData) => {
+  const imeis = [formData.imei1, formData.imei2];
+  const p_imeis = imeis.map(
+    (imei) =>
+      imei.modelo && {
+        imei_number: imei.numero,
+        brand: imei.marca,
+        model: imei.modelo,
+      },
+  );
+  return {
+    p_rut: formData.rut,
+    p_email: formData.email,
+    p_has_registration: formData.servicios.registroIMEI,
+    p_is_active: false,
+    p_total_paid: 0,
+    p_paid: false,
+    p_first_name: formData.nombres,
+    p_last_name: formData.apellidos,
+    p_phone_number: formData.whatsapp,
+    p_nationality: formData.nacionalidad,
+    p_has_antivirus: formData.servicios.antivirusPremium,
+    p_has_insurance: formData.servicios.seguro,
+    p_is_business: false,
+    p_imeis,
+  };
+};
+
+export async function createPersonalUser(formData) {
+  const body = transformToPersonalUser(formData);
+  const { data, error } = await supabase.rpc("create_personal_user", body);
+  if (error) return;
+  return data; // Account id and order id
+}
+
+const transformToBusinessUser = (formData) => {
+  const imeis = [formData.imei1, formData.imei2];
+  const p_imeis = imeis.map(
+    (imei) =>
+      imei.modelo && {
+        imei_number: imei.numero,
+        brand: imei.marca,
+        model: imei.modelo,
+      },
+  );
+  return {
+    p_rut: formData.rut,
+    p_email: formData.email,
+    p_has_registration: formData.servicios.registroIMEI,
+    p_is_active: false,
+    p_total_paid: 0,
+    p_paid: false,
+    p_business_name: formData.nombreEmpresa,
+    p_address: formData.direccion,
+    p_business_type: formData.giro,
+    p_is_business: true,
+    p_imeis,
+  };
+};
+
+export async function createBusinessUser(formData) {
+  const body = transformToBusinessUser(formData);
+  const { data, error } = await supabase.rpc("create_business_user", body);
+
+  if (error) return;
+  return data; // Account id and order id
+}

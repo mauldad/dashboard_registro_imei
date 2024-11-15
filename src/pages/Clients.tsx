@@ -24,13 +24,11 @@ const Clients = () => {
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      if (clients.length === 0) {
-        await fetchClients();
-      }
+      await fetchClients();
       setLoading(false);
     };
     getClients();
-  }, [clients]);
+  }, [clients.length]);
 
   const last12Months = Array.from({ length: 12 }, (_, i) => {
     const date = new Date();

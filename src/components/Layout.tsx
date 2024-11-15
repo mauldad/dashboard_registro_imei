@@ -65,7 +65,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">Admin User</p>
-              <p className="text-xs text-gray-500">admin@company.com</p>
+              {/* <p className="text-xs text-gray-500">admin@company.com</p> */}
             </div>
             <div className="h-8 w-8 rounded-full bg-gray-200"></div>
           </div>

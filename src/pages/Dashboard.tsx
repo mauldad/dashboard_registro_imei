@@ -27,13 +27,11 @@ const Dashboard = () => {
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      if (clients.length === 0) {
-        await fetchClients();
-      }
+      await fetchClients();
       setLoading(false);
     };
     getClients();
-  }, [clients]);
+  }, [clients.length]);
 
   const stats = useMemo(() => {
     const totalClients = clients.length;
