@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
-import type { Client } from "../types/client";
 import { createBusinessUser, createPersonalUser } from "../data/clients";
 import useClientStore from "../store/clients";
 
@@ -37,10 +36,26 @@ const AddClientModal = ({ isOpen, onClose }: AddClientModalProps) => {
       antivirusPremium: false,
       seguro: false,
     },
+    totalPaid: 0,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const BASE_PRICE = 9990;
+    const extraServices = {
+      registroIMEI: BASE_PRICE,
+      antivirusPremium: 15990,
+      seguro: 9990,
+    };
+    const totalPayment =
+      formData.type === "personal"
+        ? Object.keys(formData.servicios).reduce((acc, key) => {
+            return formData.servicios[key] ? acc + extraServices[key] : acc;
+          }, 0)
+        : BASE_PRICE *
+          [formData.imei1, formData.imei2].filter((i) => i.numero !== "")
+            .length;
+    formData.totalPaid = totalPayment;
     const data =
       formData.type === "personal"
         ? await createPersonalUser(formData)
