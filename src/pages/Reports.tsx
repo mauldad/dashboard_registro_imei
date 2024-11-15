@@ -27,13 +27,11 @@ const Reports = () => {
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      if (clients.length === 0) {
-        await fetchClients();
-      }
+      await fetchClients();
       setLoading(false);
     };
     getClients();
-  }, [clients]);
+  }, [clients.length]);
 
   // Generate years for selection (current year and 2 years back)
   const years = Array.from({ length: 3 }, (_, i) =>
