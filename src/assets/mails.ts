@@ -42,7 +42,7 @@ export const successRegister = (firstName: string, lastName: string) => `
       <!-- Encabezado con logo -->
       <div class="header">
         <img
-          src="https://registrodeimei.cl/wp-content/uploads/2024/09/cropped-Registra-tu-IMEI.-160-x-80-px-130-x-80-px.png"
+          src="https://registrodeimei.cl/wp-content/uploads/2024/11/registro-de-imei-4.webp"
           alt="registrodeimei.cl"
           width="100"
         />
