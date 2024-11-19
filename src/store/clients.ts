@@ -11,6 +11,7 @@ interface ClientStore {
     id: number,
     firstName: string,
     lastName: string,
+    orderNumber: string,
   ) => Promise<boolean>;
   deleteUser: (id: number, token: string) => Promise<void>;
 }
@@ -24,7 +25,12 @@ const useClientStore = create<ClientStore>((set, get) => ({
     }
     set({ clients });
   },
-  updatePaid: async (id: number, firstName: string, lastName: string) => {
+  updatePaid: async (
+    id: number,
+    firstName: string,
+    lastName: string,
+    orderNumber: string,
+  ) => {
     const { data, error } = await supabase.rpc("update_user_active", {
       p_account_id: id,
     });
@@ -44,7 +50,7 @@ const useClientStore = create<ClientStore>((set, get) => ({
     if (data) {
       await sendEmailUser(
         id,
-        "Tu cuenta ha sido activada",
+        `Tu cuenta ha sido activada, orden nº ${orderNumber}`,
         successRegister(firstName, lastName),
       );
     }
