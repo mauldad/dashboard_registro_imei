@@ -29,7 +29,6 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import type { IOrder } from "../types/client";
 import useClientStore from "../store/clients";
-import { sendEmailUser } from "../data/clients";
 import useAuthStore from "../store/auth";
 
 const columnHelper = createColumnHelper<IOrder>();
@@ -101,27 +100,50 @@ const columns = [
       ),
     },
   ),
-  columnHelper.accessor((row) => row.Imei.map((imei) => imei.imei_number), {
-    header: "IMEI Principal",
-    cell: (info) =>
-      info.getValue().map((imei, index) => (
+  columnHelper.accessor((row) => row.Imei, {
+    header: "Número de IMEI",
+    cell: (info) => {
+      const imeis = info.getValue();
+      return imeis.map((imei, index) => (
         <div className="flex items-center gap-2" key={index}>
           <Smartphone className="w-4 h-4 text-gray-500" />
-          <div className="flex items-center gap-2">
-            {info.row.original.Imei[index].imei_image ? (
-              <a
-                target="_blank"
-                href={info.row.original.Imei[index].imei_image}
-                className="text-blue-500 hover:text-blue-700 underline"
-              >
-                {imei}
-              </a>
-            ) : (
-              <span>{imei}</span>
-            )}
-          </div>
+          {imei.imei_image ? (
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href={imei.imei_image}
+              className="text-blue-500 hover:text-blue-700 underline"
+            >
+              {imei.imei_number}
+            </a>
+          ) : (
+            <span>{imei.imei_number}</span>
+          )}
         </div>
-      )),
+      ));
+    },
+  }),
+  columnHelper.accessor((row) => row.Imei, {
+    header: "Marca",
+    cell: (info) => {
+      const imeis = info.getValue();
+      return imeis.map((imei, index) => (
+        <div className="flex items-center gap-2" key={index}>
+          <span>{imei.brand}</span>
+        </div>
+      ));
+    },
+  }),
+  columnHelper.accessor((row) => row.Imei, {
+    header: "Modelo",
+    cell: (info) => {
+      const imeis = info.getValue();
+      return imeis.map((imei, index) => (
+        <div className="flex items-center gap-2" key={index}>
+          <span>{imei.model}</span>
+        </div>
+      ));
+    },
   }),
   columnHelper.accessor("imei_excel_url", {
     id: "excel",
@@ -233,7 +255,13 @@ const columns = [
           ?.first_name as string;
         const lastName = info.row.original.Account?.Personal
           ?.last_name as string;
-        const newStatus = await updatePaid(accountId, firstName, lastName);
+        const orderNumber = info.row.original.order_number;
+        const newStatus = await updatePaid(
+          accountId,
+          firstName,
+          lastName,
+          orderNumber,
+        );
         setStatus(newStatus);
         setIsOpen(false);
       };
@@ -286,39 +314,39 @@ const columns = [
       );
     },
   }),
-  columnHelper.display({
-    id: "actions",
-    header: "Acciones",
-    cell: (info) => {
-      const deleteUser = useClientStore((state) => state.deleteUser);
-      const token = useAuthStore((state) => state.token);
-      return (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              /* Handle edit */
-            }}
-            className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Editar registro"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() =>
-              deleteUser(
-                info.row.original.Account?.id as number,
-                token as string,
-              )
-            }
-            className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Eliminar registro"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      );
-    },
-  }),
+  // columnHelper.display({
+  //   id: "actions",
+  //   header: "Acciones",
+  //   cell: (info) => {
+  //     const deleteUser = useClientStore((state) => state.deleteUser);
+  //     const token = useAuthStore((state) => state.token);
+  //     return (
+  //       <div className="flex items-center gap-2">
+  //         <button
+  //           onClick={() => {
+  //             /* Handle edit */
+  //           }}
+  //           className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+  //           title="Editar registro"
+  //         >
+  //           <Pencil className="w-4 h-4" />
+  //         </button>
+  //         <button
+  //           onClick={() =>
+  //             deleteUser(
+  //               info.row.original.Account?.id as number,
+  //               token as string,
+  //             )
+  //           }
+  //           className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+  //           title="Eliminar registro"
+  //         >
+  //           <Trash2 className="w-4 h-4" />
+  //         </button>
+  //       </div>
+  //     );
+  //   },
+  // }),
 ];
 
 interface ClientsTableProps {
