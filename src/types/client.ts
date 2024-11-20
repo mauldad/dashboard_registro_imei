@@ -37,7 +37,7 @@ export interface IOrder {
   imei_excel_url: string;
 }
 
-interface IImei {
+export interface IImei {
   imei_number: string;
   brand: string;
   model: string;

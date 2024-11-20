@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { Client, IOrder } from "../types/client";
+import { Client, IImei, IOrder } from "../types/client";
 
 export const exportToExcel = (data: IOrder[], filename: string) => {
   const imeiData = data.map((order) =>
@@ -10,8 +10,6 @@ export const exportToExcel = (data: IOrder[], filename: string) => {
     })),
   );
 
-  // Aplanamos el array de objetos IMEI en un solo objeto
-  console.log(imeiData);
   const exportData = data.map((client, index) => ({
     ID: client.order_number,
     RUT: client.Account?.rut,
@@ -45,4 +43,21 @@ export const exportToExcel = (data: IOrder[], filename: string) => {
 
   // Generate & Download
   XLSX.writeFile(wb, `${filename}.xlsx`);
+};
+
+export const exportImeisToCSV = (imeis: IImei[]): string => {
+  const exportData = imeis.map((imei) => ({
+    Numero: imei.imei_number,
+    Marca: imei.brand,
+    Modelo: imei.model,
+  }));
+
+  const headers = Object.keys(exportData[0]).join(",") + "\n";
+  const rows = exportData.map((row) => Object.values(row).join(",")).join("\n");
+  const csvContent = headers + rows;
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = URL.createObjectURL(blob);
+
+  return link;
 };
