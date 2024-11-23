@@ -11,15 +11,17 @@ export async function getClients(): Promise<IOrder[] | undefined> {
       paid,
       imei_excel_url,
       created_at,
+      has_registration
+      has_antivirus,
+      has_insurance,
       Imei (imei_number, brand, model, imei_image),
       Account (
         id,
         rut,
         email,
-        has_registration,
         is_active,
         is_business,
-        Personal (first_name, last_name, nationality, phone_number, has_antivirus, has_insurance, id_card_url, purchase_receipt_url),
+        Personal (first_name, last_name, nationality, phone_number, id_card_url, purchase_receipt_url),
         Business (business_name, import_receipt_url)
       )
     `,
