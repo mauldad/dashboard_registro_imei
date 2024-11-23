@@ -37,6 +37,9 @@ export interface IOrder {
   Account: IAccount | null;
   imei_excel_url: string;
   registered: boolean;
+  has_registration: boolean;
+  has_antivirus: boolean;
+  has_insurance: boolean;
 }
 
 export interface IImei {
@@ -52,7 +55,6 @@ interface IAccount {
   email: string;
   Business: IBusiness | null;
   Personal: IPersonal | null;
-  has_registration: boolean;
   is_business: boolean;
 }
 
@@ -66,8 +68,6 @@ interface IPersonal {
   first_name: string;
   nationality: string;
   phone_number: string;
-  has_antivirus: boolean;
-  has_insurance: boolean;
   id_card_url: string;
   purchase_receipt_url: string;
 }
