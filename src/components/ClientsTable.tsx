@@ -386,8 +386,8 @@ const ClientsTable = ({
     if (registrationFilter !== "all") {
       result = result.filter((client) =>
         registrationFilter === "registered"
-          ? client.Account?.is_active
-          : !client.Account?.is_active,
+          ? client.registered
+          : !client.registered,
       );
     }
 

@@ -28,6 +28,7 @@ export interface Client {
 }
 
 export interface IOrder {
+  id: number;
   order_number: string;
   total_paid: number;
   paid: boolean;
@@ -35,6 +36,7 @@ export interface IOrder {
   Imei: IImei[];
   Account: IAccount | null;
   imei_excel_url: string;
+  registered: boolean;
 }
 
 interface IImei {
