@@ -12,7 +12,7 @@ export async function getClients(): Promise<IOrder[] | undefined> {
       paid,
       imei_excel_url,
       created_at,
-      has_registration
+      has_registration,
       has_antivirus,
       has_insurance,
       registered,
