@@ -30,6 +30,7 @@ import { es } from "date-fns/locale";
 import type { IOrder } from "../types/client";
 import useClientStore from "../store/clients";
 import useAuthStore from "../store/auth";
+import { exportImeisToCSV } from "../utils/export";
 
 const columnHelper = createColumnHelper<IOrder>();
 
@@ -104,6 +105,8 @@ const columns = [
     header: "Número de IMEI",
     cell: (info) => {
       const imeis = info.getValue();
+      if (imeis.length > 2) return null;
+
       return imeis.map((imei, index) => (
         <div className="flex items-center gap-2" key={index}>
           <Smartphone className="w-4 h-4 text-gray-500" />
@@ -127,17 +130,34 @@ const columns = [
     header: "Marca",
     cell: (info) => {
       const imeis = info.getValue();
-      return imeis.map((imei, index) => (
-        <div className="flex items-center gap-2" key={index}>
-          <span>{imei.brand}</span>
+      if (imeis.length <= 2) {
+        return imeis.map((imei, index) => (
+          <div className="flex items-center gap-2" key={index}>
+            <span>{imei.brand}</span>
+          </div>
+        ));
+      }
+
+      const csvLink = exportImeisToCSV(imeis);
+      return (
+        <div className="flex items-center gap-2">
+          <a
+            href={csvLink}
+            download={`${info.row.original.order_number}_imeis.csv`}
+            className="text-blue-500 hover:text-blue-700 underline"
+          >
+            Hay {imeis.length + 1} Imeis
+          </a>
         </div>
-      ));
+      );
     },
   }),
   columnHelper.accessor((row) => row.Imei, {
     header: "Modelo",
     cell: (info) => {
       const imeis = info.getValue();
+      if (imeis.length > 2) return null;
+
       return imeis.map((imei, index) => (
         <div className="flex items-center gap-2" key={index}>
           <span>{imei.model}</span>
@@ -402,21 +422,35 @@ const ClientsTable = ({
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (client) =>
-          client.Account?.rut.toLowerCase().includes(query) ||
-          client.Account?.Personal?.first_name.toLowerCase().includes(query) ||
-          client.Account?.Personal?.last_name.toLowerCase().includes(query) ||
-          client.Account?.Business?.business_name
-            .toLowerCase()
-            .includes(query) ||
+          (client.order_number &&
+            client.order_number.toLowerCase().includes(query)) ||
+          (client.Account?.rut &&
+            client.Account.rut.toLowerCase().includes(query)) ||
+          (client.Account?.Personal?.first_name &&
+            client.Account.Personal.first_name.toLowerCase().includes(query)) ||
+          (client.Account?.Personal?.last_name &&
+            client.Account.Personal.last_name.toLowerCase().includes(query)) ||
+          (client.Account?.Business?.business_name &&
+            client.Account.Business.business_name
+              .toLowerCase()
+              .includes(query)) ||
           client.Imei.some((imei) =>
             imei.imei_number.toLowerCase().includes(query),
           ) ||
-          client.Account?.email.toLowerCase().includes(query),
+          (client.Account?.email &&
+            client.Account.email.toLowerCase().includes(query)),
       );
     }
 
     return result;
-  }, [filter, paymentFilter, registrationFilter, monthFilter, searchQuery]);
+  }, [
+    filter,
+    paymentFilter,
+    registrationFilter,
+    monthFilter,
+    searchQuery,
+    clients,
+  ]);
 
   const table = useReactTable({
     data: filteredData,

@@ -39,7 +39,7 @@ export interface IOrder {
   registered: boolean;
 }
 
-interface IImei {
+export interface IImei {
   imei_number: string;
   brand: string;
   model: string;
