@@ -53,7 +53,6 @@ interface IAccount {
   Business: IBusiness | null;
   Personal: IPersonal | null;
   has_registration: boolean;
-  is_active: boolean;
   is_business: boolean;
 }
 

@@ -36,8 +36,8 @@ const Dashboard = () => {
   const stats = useMemo(() => {
     const totalClients = clients.length;
     const empresas = clients.filter((c) => c.Account?.is_business).length;
-    const validados = clients.filter((c) => c.Account?.is_active).length;
-    const pendientes = clients.filter((c) => !c.Account?.is_active).length;
+    const validados = clients.filter((c) => c.registered).length;
+    const pendientes = clients.filter((c) => !c.registered).length;
 
     return [
       {

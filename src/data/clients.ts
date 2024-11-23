@@ -6,18 +6,19 @@ export async function getClients(): Promise<IOrder[] | undefined> {
     .from("Order")
     .select(
       `
+      id,
       order_number,
       total_paid,
       paid,
       imei_excel_url,
       created_at,
+      registered,
       Imei (imei_number, brand, model, imei_image),
       Account (
         id,
         rut,
         email,
         has_registration,
-        is_active,
         is_business,
         Personal (first_name, last_name, nationality, phone_number, has_antivirus, has_insurance, id_card_url, purchase_receipt_url),
         Business (business_name, import_receipt_url)
@@ -33,22 +34,10 @@ export async function getClients(): Promise<IOrder[] | undefined> {
 }
 
 export async function sendEmailUser(
-  accountId: number,
+  toEmail: string,
   subject: string,
   html: string,
 ) {
-  const { data, error } = await supabase
-    .from("Account")
-    .select("email")
-    .eq("id", accountId)
-    .single();
-
-  if (error) {
-    console.error("Send Email Error:", error);
-    throw new Error("Send email failed");
-  }
-  const toEmail = data?.email;
-
   try {
     const response = await fetch("/.netlify/functions/send_email", {
       method: "POST",
@@ -77,7 +66,6 @@ const transformToPersonalUser = (formData) => {
     p_rut: formData.rut,
     p_email: formData.email,
     p_has_registration: formData.servicios.registroIMEI,
-    p_is_active: false,
     p_total_paid: formData.totalPaid,
     p_paid: false,
     p_first_name: formData.nombres,
@@ -112,7 +100,6 @@ const transformToBusinessUser = (formData) => {
     p_rut: formData.rut,
     p_email: formData.email,
     p_has_registration: formData.servicios.registroIMEI,
-    p_is_active: false,
     p_total_paid: formData.totalPaid,
     p_paid: false,
     p_business_name: formData.nombreEmpresa,

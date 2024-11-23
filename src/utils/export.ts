@@ -31,7 +31,7 @@ export const exportToExcel = (data: IOrder[], filename: string) => {
       style: "currency",
       currency: "CLP",
     }),
-    "Estado Registro": client.Account?.is_active ? "Registrado" : "En Espera",
+    "Estado Registro": client.registered ? "Registrado" : "En Espera",
     "Estado Pago": client.paid ? "Pagado" : "Pendiente",
     "Fecha Pago": client.created_at,
     ...imeiData[index].reduce((acc, curr) => ({ ...acc, ...curr }), {}),
