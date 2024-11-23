@@ -187,12 +187,8 @@ const columns = [
   columnHelper.accessor(
     (row) =>
       row.Account?.is_business
-        ? [true, false, false]
-        : [
-            true,
-            row.Account?.Personal?.has_antivirus,
-            row.Account?.Personal?.has_insurance,
-          ],
+        ? [row.has_registration, false, false]
+        : [row.has_registration, row.has_antivirus, row.has_insurance],
     {
       header: "Servicios",
       cell: (info) => (
