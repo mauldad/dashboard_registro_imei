@@ -108,8 +108,8 @@ const Reports = () => {
       total: filteredData.length,
       business: filteredData.filter((c) => c.Account?.is_business).length,
       personal: filteredData.filter((c) => !c.Account?.is_business).length,
-      registered: filteredData.filter((c) => c.Account?.is_active).length,
-      waiting: filteredData.filter((c) => !c.Account?.is_active).length,
+      registered: filteredData.filter((c) => c.registered).length,
+      waiting: filteredData.filter((c) => !c.registered).length,
       totalAmount: filteredData.reduce(
         (sum, client) => sum + client.total_paid,
         0,
