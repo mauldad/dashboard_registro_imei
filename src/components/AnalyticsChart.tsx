@@ -48,7 +48,7 @@ const AnalyticsChart = () => {
       if (!acc[month]) {
         acc[month] = { registered: 0, waiting: 0 };
       }
-      if (client.Account?.is_active) {
+      if (client.registered) {
         acc[month].registered++;
       } else {
         acc[month].waiting++;

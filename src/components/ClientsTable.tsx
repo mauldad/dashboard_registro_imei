@@ -258,31 +258,26 @@ const columns = [
       </div>
     ),
   }),
-  columnHelper.accessor("Account.is_active", {
+  columnHelper.accessor("registered", {
     header: "Estado Registro",
     cell: (info) => {
       const [isOpen, setIsOpen] = useState(false);
-      const [status, setStatus] = useState(info.getValue() || false);
+      const status = info.getValue();
       const updatePaid = useClientStore((state) => state.updatePaid);
 
       const handleStatusChange = async () => {
-        const accountId = info.row.original.Account?.id;
-        if (!accountId) {
-          setIsOpen(false);
-          return;
-        }
+        const orderId = info.row.original.id;
         const firstName = info.row.original.Account?.Personal
           ?.first_name as string;
         const lastName = info.row.original.Account?.Personal
           ?.last_name as string;
         const orderNumber = info.row.original.order_number;
         const newStatus = await updatePaid(
-          accountId,
+          orderId,
           firstName,
           lastName,
           orderNumber,
         );
-        setStatus(newStatus);
         setIsOpen(false);
       };
 

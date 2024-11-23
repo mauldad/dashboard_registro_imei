@@ -31,26 +31,26 @@ const useClientStore = create<ClientStore>((set, get) => ({
     lastName: string,
     orderNumber: string,
   ) => {
-    const { data, error } = await supabase.rpc("update_user_active", {
-      p_account_id: id,
+    const { data, error } = await supabase.rpc("update_order_register", {
+      p_order_id: id,
     });
     const newClients = get().clients.map((client) => {
-      if (client.Account?.id === id) {
+      if (client.id === id) {
         return {
           ...client,
-          Account: {
-            ...client.Account,
-            is_active: data,
-          },
+          registered: data,
         };
       }
       return client;
     });
 
+    const email = get().clients.find((client) => client.id === id)?.Account
+      ?.email;
+
     if (data) {
       await sendEmailUser(
-        id,
-        `Tu cuenta ha sido activada, orden nº ${orderNumber}`,
+        email as string,
+        `¡Tu registro se completó! Orden nº ${orderNumber}`,
         successRegister(firstName, lastName),
       );
     }
