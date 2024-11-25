@@ -82,9 +82,9 @@ const columns = [
   ),
   columnHelper.accessor(
     (row) =>
-      row.Account?.is_business
-        ? row.Account?.Business?.import_receipt_url
-        : row.Account?.Personal?.purchase_receipt_url,
+      row.Account?.is_business || row.import_receipt_url
+        ? row.import_receipt_url
+        : row.purchase_receipt_url,
     {
       id: "comprobante",
       header: "Comprobante",
@@ -92,10 +92,13 @@ const columns = [
         <div className="flex items-center gap-2">
           <a
             target="_blank"
-            href={info.getValue()}
+            href={info.getValue() as string}
             className="text-blue-500 hover:text-blue-700 underline"
           >
-            {info.row.original.Account?.is_business ? "Exportacion" : "Compra"}
+            {info.row.original.Account?.is_business ||
+            info.row.original.import_receipt_url
+              ? "Exportacion"
+              : "Compra"}
           </a>
         </div>
       ),
