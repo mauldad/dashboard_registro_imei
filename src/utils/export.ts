@@ -26,7 +26,7 @@ export const exportToExcel = (data: IOrder[], filename: string) => {
     // "Marca 2": client.imei2?.marca || "",
     // "Modelo 2": client.imei2?.modelo || "",
     "Registro IMEI": client.has_registration ? "Sí" : "No",
-    "Antivirus Premium": client.Account?.Personal?.has_antivirus ? "Sí" : "No",
+    "Antivirus Premium": client.has_antivirus ? "Sí" : "No",
     "Total Pagado": client.total_paid.toLocaleString("es-CL", {
       style: "currency",
       currency: "CLP",

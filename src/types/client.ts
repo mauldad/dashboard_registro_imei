@@ -40,6 +40,8 @@ export interface IOrder {
   has_registration: boolean;
   has_antivirus: boolean;
   has_insurance: boolean;
+  import_receipt_url: string | null;
+  purchase_receipt_url: string | null;
 }
 
 export interface IImei {
@@ -60,7 +62,6 @@ interface IAccount {
 
 interface IBusiness {
   business_name: string;
-  import_receipt_url: string;
 }
 
 interface IPersonal {
@@ -69,5 +70,4 @@ interface IPersonal {
   nationality: string;
   phone_number: string;
   id_card_url: string;
-  purchase_receipt_url: string;
 }
