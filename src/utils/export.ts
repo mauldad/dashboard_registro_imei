@@ -17,7 +17,7 @@ export const exportToExcel = (data: IOrder[], filename: string) => {
     Apellidos: client.Account?.Personal?.last_name,
     "Tipo Cliente": client.Account?.is_business ? "Empresa" : "Personal",
     Nacionalidad: client.Account?.Personal?.nationality,
-    Email: client.Account?.email,
+    Email: client.email,
     WhatsApp: client.Account?.Personal?.phone_number,
     // "IMEI 1": client.imei1.numero,
     // "Marca 1": client.imei1.marca,
