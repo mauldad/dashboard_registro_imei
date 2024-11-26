@@ -18,11 +18,12 @@ export async function getClients(): Promise<IOrder[] | undefined> {
       registered,
       purchase_receipt_url,
       import_receipt_url,
+      registrant_name,
+      email,
       Imei (imei_number, brand, model, imei_image),
       Account (
         id,
         rut,
-        email,
         is_business,
         Personal (first_name, last_name, nationality, phone_number, id_card_url),
         Business (business_name)

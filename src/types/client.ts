@@ -42,6 +42,8 @@ export interface IOrder {
   has_insurance: boolean;
   import_receipt_url: string | null;
   purchase_receipt_url: string | null;
+  registrant_name: string | null;
+  email: string;
 }
 
 export interface IImei {
@@ -54,7 +56,6 @@ export interface IImei {
 interface IAccount {
   id: number;
   rut: string;
-  email: string;
   Business: IBusiness | null;
   Personal: IPersonal | null;
   is_business: boolean;

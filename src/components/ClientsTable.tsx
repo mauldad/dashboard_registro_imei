@@ -431,8 +431,7 @@ const ClientsTable = ({
           client.Imei.some((imei) =>
             imei.imei_number.toLowerCase().includes(query),
           ) ||
-          (client.Account?.email &&
-            client.Account.email.toLowerCase().includes(query)),
+          client.email.toLowerCase().includes(query),
       );
     }
 

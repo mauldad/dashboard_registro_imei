@@ -44,8 +44,7 @@ const useClientStore = create<ClientStore>((set, get) => ({
       return client;
     });
 
-    const email = get().clients.find((client) => client.id === id)?.Account
-      ?.email;
+    const email = get().clients.find((client) => client.id === id)?.email;
 
     if (data) {
       await sendEmailUser(
