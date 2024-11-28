@@ -49,14 +49,14 @@ const Clients = () => {
           </h1>
         </div>
         <div className="flex gap-3">
-          <button
+          {/*<button
             onClick={() => setIsModalOpen(true)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             <Plus size={20} />
             Nuevo Registro
-          </button>
+          </button> */}
           <button
             onClick={() => exportToExcel(clients, "clientes-export")}
             disabled={loading}
