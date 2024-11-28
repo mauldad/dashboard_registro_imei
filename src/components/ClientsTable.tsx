@@ -284,6 +284,7 @@ const columns = [
         <div className="relative">
           <button
             onClick={() => setIsOpen(!isOpen)}
+            disabled={!info.row.original.paid}
             className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               status
                 ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
