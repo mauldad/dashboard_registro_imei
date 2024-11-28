@@ -32,7 +32,7 @@ const Login = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <img
-            src="https://registrodeimei.cl/wp-content/uploads/2024/09/cropped-Registra-tu-IMEI.-160-x-80-px-130-x-80-px.png"
+            src="https://registrodeimei.cl/wp-content/uploads/2024/11/registro-de-imei-4.webp"
             alt="Registro de IMEI Logo"
             className="h-20 w-auto"
           />
