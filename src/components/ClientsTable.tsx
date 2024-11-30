@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -29,12 +29,12 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import type { IOrder } from "../types/client";
 import useClientStore from "../store/clients";
-import useAuthStore from "../store/auth";
 import { exportImeisToCSV } from "../utils/export";
+import EditOrderModal from "./EditOrderModal";
 
 const columnHelper = createColumnHelper<IOrder>();
 
-const columns = [
+const createColumns = (handleEdit: (order: IOrder) => void) => [
   columnHelper.accessor("order_number", {
     header: "Orden",
     cell: (info) => (
@@ -261,10 +261,12 @@ const columns = [
     header: "Estado Registro",
     cell: (info) => {
       const [isOpen, setIsOpen] = useState(false);
+      const [loading, setLoading] = useState(false);
       const status = info.getValue();
       const updatePaid = useClientStore((state) => state.updatePaid);
 
       const handleStatusChange = async () => {
+        setLoading(true);
         const orderId = info.row.original.id;
         const firstName = info.row.original.Account?.Personal
           ?.first_name as string;
@@ -277,6 +279,7 @@ const columns = [
           lastName,
           orderNumber,
         );
+        setLoading(false);
         setIsOpen(false);
       };
 
@@ -284,12 +287,12 @@ const columns = [
         <div className="relative">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            disabled={!info.row.original.paid}
+            disabled={!info.row.original.paid || loading}
             className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               status
                 ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-            }`}
+            } ${loading ? "opacity-50 animate-pulse" : ""}`}
           >
             <span className="flex items-center gap-2">
               {status ? (
@@ -311,14 +314,20 @@ const columns = [
             <div className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border">
               <button
                 onClick={() => handleStatusChange()}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                disabled={status || loading}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 ${
+                  loading ? "opacity-50 animate-pulse" : ""
+                }`}
               >
                 <CheckCircle className="w-4 h-4 text-blue-600" />
                 Registrado
               </button>
               <button
                 onClick={() => handleStatusChange()}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                disabled={!status || loading}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 ${
+                  loading ? "opacity-50 animate-pulse" : ""
+                }`}
               >
                 <Clock className="w-4 h-4 text-gray-600" />
                 En Espera
@@ -329,39 +338,25 @@ const columns = [
       );
     },
   }),
-  // columnHelper.display({
-  //   id: "actions",
-  //   header: "Acciones",
-  //   cell: (info) => {
-  //     const deleteUser = useClientStore((state) => state.deleteUser);
-  //     const token = useAuthStore((state) => state.token);
-  //     return (
-  //       <div className="flex items-center gap-2">
-  //         <button
-  //           onClick={() => {
-  //             /* Handle edit */
-  //           }}
-  //           className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-  //           title="Editar registro"
-  //         >
-  //           <Pencil className="w-4 h-4" />
-  //         </button>
-  //         <button
-  //           onClick={() =>
-  //             deleteUser(
-  //               info.row.original.Account?.id as number,
-  //               token as string,
-  //             )
-  //           }
-  //           className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-  //           title="Eliminar registro"
-  //         >
-  //           <Trash2 className="w-4 h-4" />
-  //         </button>
-  //       </div>
-  //     );
-  //   },
-  // }),
+  columnHelper.display({
+    id: "actions",
+    header: "Acciones",
+    cell: (info) => {
+      return (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              handleEdit(info.row.original);
+            }}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Editar registro"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    },
+  }),
 ];
 
 interface ClientsTableProps {
@@ -381,6 +376,8 @@ const ClientsTable = ({
   clients,
   searchQuery = undefined,
 }: ClientsTableProps) => {
+  const [editOrder, setEditOrder] = useState<IOrder | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const filteredData = React.useMemo(() => {
     let result = clients;
 
@@ -446,6 +443,13 @@ const ClientsTable = ({
     clients,
   ]);
 
+  const handleEdit = (order: IOrder) => {
+    setEditOrder(order);
+    setShowEditModal(true);
+  };
+
+  const columns = useMemo(() => createColumns(handleEdit), [handleEdit]);
+
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -461,6 +465,12 @@ const ClientsTable = ({
 
   return (
     <div className="space-y-4">
+      {showEditModal && (
+        <EditOrderModal
+          order={editOrder as IOrder}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
