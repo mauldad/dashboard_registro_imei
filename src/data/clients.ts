@@ -1,5 +1,6 @@
 import { IOrder } from "../types/client";
 import supabase from "./supabase";
+import { v4 as uuidv4 } from "uuid";
 
 export async function getClients(): Promise<IOrder[] | undefined> {
   const { data, error } = await supabase
@@ -57,29 +58,52 @@ export async function sendEmailUser(
   }
 }
 
-const transformToPersonalUser = (formData) => {
-  const imeis = [formData.imei1, formData.imei2];
-  const p_imeis = imeis.map(
+const transformToPersonalUser = (formData: IOrder) => {
+  const p_imeis = formData.Imei.map(
     (imei) =>
-      imei.modelo && {
-        imei_number: imei.numero,
-        brand: imei.marca,
-        model: imei.modelo,
+      imei.model && {
+        imei_number: imei.imei_number,
+        brand: imei.brand,
+        model: imei.model,
       },
   );
   return {
-    p_rut: formData.rut,
+    p_rut: formData.Account?.rut,
     p_email: formData.email,
-    p_has_registration: formData.servicios.registroIMEI,
-    p_total_paid: formData.totalPaid,
-    p_paid: false,
-    p_first_name: formData.nombres,
-    p_last_name: formData.apellidos,
-    p_phone_number: formData.whatsapp,
-    p_nationality: formData.nacionalidad,
-    p_has_antivirus: formData.servicios.antivirusPremium,
-    p_has_insurance: formData.servicios.seguro,
+    p_has_registration: formData.has_registration,
+    p_total_paid: formData.total_paid,
+    p_paid: formData.paid,
+    p_first_name: formData.Account?.Personal?.first_name,
+    p_last_name: formData.Account?.Personal?.last_name,
+    p_phone_number: formData.Account?.Personal?.phone_number,
+    p_nationality: formData.Account?.Personal?.nationality,
+    p_has_antivirus: formData.has_antivirus,
+    p_has_insurance: formData.has_insurance,
     p_is_business: false,
+    p_purchase_receipt_url: formData.purchase_receipt_url,
+    p_imeis,
+  };
+};
+
+const transformToBusinessUser = (formData: IOrder) => {
+  const p_imeis = formData.Imei.map(
+    (imei) =>
+      imei.model && {
+        imei_number: imei.imei_number,
+        brand: imei.brand,
+        model: imei.model,
+      },
+  );
+  return {
+    p_rut: formData.Account?.rut,
+    p_email: formData.email,
+    p_has_registration: formData.has_registration,
+    p_total_paid: formData.total_paid,
+    p_paid: formData.paid,
+    p_business_name: formData.Account?.Business?.business_name,
+    p_is_business: true,
+    p_imei_excel_url: formData.imei_excel_url,
+    p_import_receipt_url: formData.import_receipt_url,
     p_imeis,
   };
 };
@@ -91,34 +115,135 @@ export async function createPersonalUser(formData) {
   return data; // Account id and order id
 }
 
-const transformToBusinessUser = (formData) => {
-  const imeis = [formData.imei1, formData.imei2];
-  const p_imeis = imeis.map(
-    (imei) =>
-      imei.modelo && {
-        imei_number: imei.numero,
-        brand: imei.marca,
-        model: imei.modelo,
-      },
-  );
-  return {
-    p_rut: formData.rut,
-    p_email: formData.email,
-    p_has_registration: formData.servicios.registroIMEI,
-    p_total_paid: formData.totalPaid,
-    p_paid: false,
-    p_business_name: formData.nombreEmpresa,
-    p_address: formData.direccion,
-    p_business_type: formData.giro,
-    p_is_business: true,
-    p_imeis,
-  };
-};
-
 export async function createBusinessUser(formData) {
   const body = transformToBusinessUser(formData);
   const { data, error } = await supabase.rpc("create_business_user", body);
 
   if (error) return;
   return data; // Account id and order id
+}
+
+export async function updatePersonalUser(formData: IOrder, orderId: number) {
+  const transformedData = transformToPersonalUser(formData);
+  const body = (({
+    p_rut,
+    p_total_paid,
+    p_paid,
+    p_first_name,
+    p_last_name,
+    p_has_antivirus,
+    p_purchase_receipt_url,
+    p_imeis,
+  }) => ({
+    p_order_id: orderId,
+    p_rut,
+    p_total_paid,
+    p_paid,
+    p_first_name,
+    p_last_name,
+    p_has_antivirus,
+    p_purchase_receipt_url,
+    p_imeis,
+  }))(transformedData);
+  const { data, error } = await supabase.rpc("update_personal_user", body);
+  if (error) return;
+  return data;
+}
+
+export async function updateBusinessUser(formData: IOrder, orderId: number) {
+  const transformedData = transformToBusinessUser(formData);
+  const body = (({
+    p_rut,
+    p_total_paid,
+    p_paid,
+    p_business_name,
+    p_imei_excel_url,
+    p_import_receipt_url,
+    p_imeis,
+  }) => ({
+    p_order_id: orderId,
+    p_rut,
+    p_total_paid,
+    p_paid,
+    p_business_name,
+    p_imei_excel_url,
+    p_import_receipt_url,
+    p_imeis,
+  }))(transformedData);
+  const { data, error } = await supabase.rpc("update_business_user", body);
+  if (error) return;
+  return data; // Account id and order id
+}
+
+export async function uploadPersonalUserIdCard(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(
+      `personal/id_cards/${uuidFile}-${timestamp}-id_card${extension}`,
+      file,
+    );
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
+}
+
+export async function uploadPersonalPurchaseReceipt(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(
+      `personal/receipts/${uuidFile}-${timestamp}-purchase_receipt${extension}`,
+      file,
+    );
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
+}
+
+export async function uploadBusinessImportReceipt(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(
+      `business/receipts/${uuidFile}-${timestamp}-import_receipt${extension}`,
+      file,
+    );
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
+}
+
+export async function uploadExcelImeisFile(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(`business/excels/${uuidFile}-${timestamp}-excel${extension}`, file);
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
 }
