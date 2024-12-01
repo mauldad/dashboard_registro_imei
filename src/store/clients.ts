@@ -13,6 +13,7 @@ interface ClientStore {
     lastName: string,
     orderNumber: string,
   ) => Promise<boolean>;
+  updateClient: (updatedClient: IOrder) => void;
   deleteUser: (id: number, token: string) => Promise<void>;
 }
 
@@ -55,6 +56,15 @@ const useClientStore = create<ClientStore>((set, get) => ({
     }
     set({ clients: newClients });
     return data;
+  },
+  updateClient: (updatedClient: IOrder) => {
+    const newClients = get().clients.map((client) => {
+      if (client.id === updatedClient.id) {
+        return updatedClient;
+      }
+      return client;
+    });
+    set({ clients: newClients });
   },
   deleteUser: async (id: number, token: string) => {
     const { data, error } = await supabase.rpc("delete_user", {
