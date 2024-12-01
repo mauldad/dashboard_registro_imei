@@ -1,5 +1,6 @@
 import { IOrder } from "../types/client";
 import supabase from "./supabase";
+import { v4 as uuidv4 } from "uuid";
 
 export async function getClients(): Promise<IOrder[] | undefined> {
   const { data, error } = await supabase
@@ -170,7 +171,79 @@ export async function updateBusinessUser(formData: IOrder, orderId: number) {
     p_imeis,
   }))(transformedData);
   const { data, error } = await supabase.rpc("update_business_user", body);
-  console.log(error, body);
   if (error) return;
   return data; // Account id and order id
+}
+
+export async function uploadPersonalUserIdCard(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(
+      `personal/id_cards/${uuidFile}-${timestamp}-id_card${extension}`,
+      file,
+    );
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
+}
+
+export async function uploadPersonalPurchaseReceipt(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(
+      `personal/receipts/${uuidFile}-${timestamp}-purchase_receipt${extension}`,
+      file,
+    );
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
+}
+
+export async function uploadBusinessImportReceipt(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(
+      `business/receipts/${uuidFile}-${timestamp}-import_receipt${extension}`,
+      file,
+    );
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
+}
+
+export async function uploadExcelImeisFile(file: File) {
+  const uuidFile = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = new Date().getTime();
+  const dotIndex = file.name.lastIndexOf(".");
+  const extension = file.name.slice(dotIndex);
+  const { data: uploadData, error } = await supabase.storage
+    .from("imeis")
+    .upload(`business/excels/${uuidFile}-${timestamp}-excel${extension}`, file);
+  if (error) return;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("imeis")
+    .getPublicUrl(uploadData.path);
+  return publicUrlData.publicUrl;
 }

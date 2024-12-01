@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { IImei, IOrder } from "../types/client";
-import { Building2, User } from "lucide-react";
-import { updateBusinessUser, updatePersonalUser } from "../data/clients";
+import { Building2, Plus, Trash2, User } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  updateBusinessUser,
+  updatePersonalUser,
+  uploadBusinessImportReceipt,
+  uploadExcelImeisFile,
+  uploadPersonalPurchaseReceipt,
+} from "../data/clients";
 import useClientStore from "../store/clients";
 
 const EditOrderModal = ({
@@ -92,6 +99,7 @@ const EditOrderModal = ({
               RUT
             </label>
             <input
+              required
               type="text"
               id="rut"
               name="rut"
@@ -132,6 +140,7 @@ const EditOrderModal = ({
               Total a pagar
             </label>
             <input
+              required
               type="number"
               id="total_paid"
               name="total_paid"
@@ -182,6 +191,54 @@ const PersonalForm = ({
   handleInputChange,
   handleCheckboxChange,
 }: any) => {
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
+
+  const handleUploadPurchaseReceipt = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoadingReceipt(true);
+    const purchaseReceiptUrl = await uploadPersonalPurchaseReceipt(file);
+    setLoadingReceipt(false);
+    if (!purchaseReceiptUrl) return;
+    setUpdatedOrder((prevOrder: IOrder) => ({
+      ...prevOrder,
+      purchase_receipt_url: purchaseReceiptUrl,
+    }));
+  };
+
+  const handleAddImei = () => {
+    setUpdatedOrder((prevOrder: IOrder) => ({
+      ...prevOrder,
+      Imei: [
+        ...prevOrder.Imei,
+        { imei_number: "", brand: "", model: "" }, // Valores iniciales
+      ],
+    }));
+  };
+
+  const handleDeleteImei = (idx: number) => {
+    setUpdatedOrder((prevOrder: IOrder) => ({
+      ...prevOrder,
+      Imei: prevOrder.Imei.filter((_, index) => index !== idx),
+    }));
+  };
+
+  const handleImeiChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    idx: number,
+    field: keyof IImei,
+  ) => {
+    const { value } = e.target;
+    setUpdatedOrder((prevOrder: IOrder) => ({
+      ...prevOrder,
+      Imei: prevOrder.Imei.map((item, index) =>
+        index === idx ? { ...item, [field]: value } : item,
+      ),
+    }));
+  };
+
   return (
     <>
       <div className="flex items-center gap-5">
@@ -193,6 +250,7 @@ const PersonalForm = ({
             Nombres
           </label>
           <input
+            required
             type="text"
             id="first_name"
             name="first_name"
@@ -221,6 +279,7 @@ const PersonalForm = ({
             Apellidos
           </label>
           <input
+            required
             type="text"
             id="last_name"
             name="last_name"
@@ -245,8 +304,11 @@ const PersonalForm = ({
       <>
         <h4 className="mt-2 text-lg">IMEIs:</h4>
         {updatedOrder.Imei?.map((imei: IImei, idx: number) => (
-          <div className="flex items-center justify-between gap-2">
-            <div key={`${idx}-${imei.imei_number}`} className="flex flex-col">
+          <div
+            key={`${idx}`}
+            className="flex items-center justify-between gap-2"
+          >
+            <div className="flex flex-col">
               <label
                 htmlFor={`imei_number_${idx}`}
                 className="text-sm font-medium text-gray-600"
@@ -254,15 +316,16 @@ const PersonalForm = ({
                 IMEI {idx + 1}
               </label>
               <input
+                required
                 type="text"
                 id={`imei_number_${idx}`}
                 name={`imei_number_${idx}`}
                 value={imei.imei_number}
-                onChange={handleInputChange}
+                onChange={(e) => handleImeiChange(e, idx, "imei_number")}
                 className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               />
             </div>
-            <div key={idx} className="flex flex-col">
+            <div className="flex flex-col">
               <label
                 htmlFor={`brand_${idx}`}
                 className="text-sm font-medium text-gray-600"
@@ -270,15 +333,16 @@ const PersonalForm = ({
                 Marca {idx + 1}
               </label>
               <input
+                required
                 type="text"
                 id={`brand_${idx}`}
                 name={`brand_${idx}`}
                 value={imei.brand}
-                onChange={handleInputChange}
+                onChange={(e) => handleImeiChange(e, idx, "brand")}
                 className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               />
             </div>
-            <div key={idx} className="flex flex-col">
+            <div className="flex flex-col">
               <label
                 htmlFor={`model_${idx}`}
                 className="text-sm font-medium text-gray-600"
@@ -286,16 +350,36 @@ const PersonalForm = ({
                 Modelo {idx + 1}
               </label>
               <input
+                required
                 type="text"
                 id={`model_${idx}`}
                 name={`model_${idx}`}
                 value={imei.model}
-                onChange={handleInputChange}
+                onChange={(e) => handleImeiChange(e, idx, "model")}
                 className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               />
             </div>
+            {updatedOrder.Imei.length > 1 && (
+              <button
+                type="button"
+                onClick={() => handleDeleteImei(idx)}
+                className="text-red-500 hover:text-red-700 transition"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
         ))}
+        {updatedOrder.Imei.length < 2 && (
+          <button
+            type="button"
+            onClick={handleAddImei}
+            className="mt-4 flex items-center gap-2 px-4 py-2 rounded-md"
+          >
+            <Plus className="w-5 h-5" />
+            Agregar IMEI
+          </button>
+        )}
       </>
 
       <div className="flex items-center space-x-2">
@@ -325,30 +409,25 @@ const PersonalForm = ({
 
         {updatedOrder.purchase_receipt_url && (
           <div className="mb-2">
-            <img
-              src={updatedOrder.purchase_receipt_url}
-              alt="Comprobante de compra"
-              className="max-w-full h-auto border border-gray-300 rounded-md"
-            />
+            <a
+              href={updatedOrder.purchase_receipt_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-blue-600 underline ${
+                loadingReceipt && "opacity-50"
+              }`}
+            >
+              Ver archivo subido
+            </a>
           </div>
         )}
 
         <input
+          disabled={loadingReceipt}
           type="file"
           id="purchase_receipt_url"
           name="purchase_receipt_url"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              // Aquí puedes manejar la subida del archivo, por ejemplo, a un servicio o almacenamiento.
-              // Asegúrate de procesar el archivo adecuadamente antes de actualizar el estado.
-              const fileURL = URL.createObjectURL(file);
-              setUpdatedOrder((prevOrder: IOrder) => ({
-                ...prevOrder,
-                purchase_receipt_url: fileURL, // Guardamos la URL temporal del archivo
-              }));
-            }
-          }}
+          onChange={handleUploadPurchaseReceipt}
           className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
         />
       </div>
@@ -361,6 +440,122 @@ const BusinessForm = ({
   setUpdatedOrder,
   handleInputChange,
 }: any) => {
+  const [loadingExcel, setLoadingExcel] = useState(false);
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
+
+  const brands = [
+    "Samsung",
+    "Apple",
+    "Xiaomi",
+    "Huawei",
+    "Motorola",
+    "LG",
+    "Sony",
+    "OnePlus",
+    "OPPO",
+    "Vivo",
+    "Otro",
+  ];
+
+  const handleUploadImportReceipt = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoadingReceipt(true);
+    const importReceiptUrl = await uploadBusinessImportReceipt(file);
+    setLoadingReceipt(false);
+    if (!importReceiptUrl) return;
+    setUpdatedOrder((prevOrder: IOrder) => ({
+      ...prevOrder,
+      import_receipt_url: importReceiptUrl,
+    }));
+  };
+
+  const handleUploadImeisExcel = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoadingExcel(true);
+    const imeiExcelUrl = await uploadExcelImeisFile(file);
+    setLoadingExcel(false);
+    processExcelFile(file);
+    if (!imeiExcelUrl) return;
+    setUpdatedOrder((prevOrder: IOrder) => ({
+      ...prevOrder,
+      imei_excel_url: imeiExcelUrl,
+    }));
+  };
+
+  const validateImei = (imei: string): boolean => {
+    // Validación básica: 15 dígitos y algoritmo Luhn
+    if (!/^\d{15}$/.test(imei)) return false;
+
+    let sum = 0;
+    let isEven = false;
+
+    for (let i = imei.length - 1; i >= 0; i--) {
+      let digit = parseInt(imei[i]);
+
+      if (isEven) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+
+      sum += digit;
+      isEven = !isEven;
+    }
+
+    return sum % 10 === 0;
+  };
+
+  const processExcelFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+        const imeis = jsonData
+          .flat()
+          .filter((cell) => cell)
+          .map((cell) => cell.toString().trim());
+
+        const validSet: Set<string> = new Set();
+        const invalidSet: Set<string> = new Set();
+
+        imeis.forEach((imei) => {
+          if (validateImei(imei)) {
+            validSet.add(imei);
+          } else {
+            invalidSet.add(imei);
+          }
+        });
+
+        const valid = Array.from(validSet).slice(0, 50000);
+
+        if (valid.length === 0) return;
+        const imeiBrand = updatedOrder.Imei[0].brand;
+        setUpdatedOrder((prevOrder: IOrder) => ({
+          ...prevOrder,
+          Imei: valid.map((imei) => ({
+            imei_number: imei,
+            brand: imeiBrand,
+            model: "Varios",
+          })),
+        }));
+      } catch (error) {
+        console.error("Error processing Excel file:", error);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
   return (
     <>
       <div className="flex flex-col">
@@ -371,6 +566,7 @@ const BusinessForm = ({
           Nombre de la empresa
         </label>
         <input
+          required
           type="text"
           id="business_name"
           name="business_name"
@@ -391,21 +587,64 @@ const BusinessForm = ({
         />
       </div>
 
+      <div>
+        <div className="flex flex-col">
+          <label
+            htmlFor="imei_excel_url"
+            className="text-sm font-medium text-gray-600"
+          >
+            Excel de IMEIs
+          </label>
+          {updatedOrder.imei_excel_url && (
+            <div className="mb-2">
+              <a
+                href={updatedOrder.imei_excel_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-blue-600 underline ${
+                  loadingExcel && "opacity-50"
+                }`}
+              >
+                Hay {updatedOrder.Imei.length + 1} imeis validos en el archivo
+              </a>
+            </div>
+          )}
+
+          <input
+            disabled={loadingExcel}
+            type="file"
+            id="imei_excel_url"
+            name="imei_excel_url"
+            onChange={(e) => handleUploadImeisExcel(e)}
+            className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+          />
+        </div>
+      </div>
+
       <div className="flex flex-col">
-        <label
-          htmlFor="imei_excel_url"
-          className="text-sm font-medium text-gray-600"
-        >
-          Excel de IMEIs
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Marca de los dispositivos
         </label>
-        <input
-          type="text"
-          id="imei_excel_url"
-          name="imei_excel_url"
-          value={updatedOrder.imei_excel_url}
-          onChange={handleInputChange}
-          className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-        />
+        <select
+          disabled={loadingExcel}
+          value={updatedOrder.Imei[0].brand}
+          onChange={(e) =>
+            setUpdatedOrder((prevOrder: IOrder) => ({
+              ...prevOrder,
+              Imei: prevOrder.Imei.map((item) => ({
+                ...item,
+                brand: e.target.value,
+              })),
+            }))
+          }
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          {brands.map((brand) => (
+            <option key={brand} value={brand}>
+              {brand}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex flex-col">
@@ -415,12 +654,28 @@ const BusinessForm = ({
         >
           Comprobante de importación
         </label>
+
+        {updatedOrder.import_receipt_url && (
+          <div className="mb-2">
+            <a
+              href={updatedOrder.import_receipt_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-blue-600 underline ${
+                loadingReceipt && "opacity-50"
+              }`}
+            >
+              Ver archivo subido
+            </a>
+          </div>
+        )}
+
         <input
-          type="text"
+          type="file"
           id="import_receipt_url"
           name="import_receipt_url"
-          value={updatedOrder.import_receipt_url || ""}
-          onChange={handleInputChange}
+          disabled={loadingReceipt}
+          onChange={(e) => handleUploadImportReceipt(e)}
           className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
         />
       </div>
