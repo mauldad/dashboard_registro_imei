@@ -273,12 +273,8 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
         const lastName = info.row.original.Account?.Personal
           ?.last_name as string;
         const orderNumber = info.row.original.order_number;
-        const newStatus = await updatePaid(
-          orderId,
-          firstName,
-          lastName,
-          orderNumber,
-        );
+        const isBusiness = info.row.original.Account?.is_business as boolean;
+        const newStatus = await updatePaid(orderId, isBusiness, orderNumber);
         setLoading(false);
         setIsOpen(false);
       };

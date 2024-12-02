@@ -2,15 +2,15 @@ import { create } from "zustand";
 import { getClients, sendEmailUser } from "../data/clients";
 import { IOrder } from "../types/client";
 import supabase from "../data/supabase";
-import { successRegister } from "../assets/mails";
+import { successRegister, successRegisterBusiness } from "../assets/mails";
+import { is } from "date-fns/locale";
 
 interface ClientStore {
   clients: IOrder[];
   fetchClients: () => Promise<void>;
   updatePaid: (
     id: number,
-    firstName: string,
-    lastName: string,
+    isBusiness: boolean,
     orderNumber: string,
   ) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;
@@ -26,12 +26,7 @@ const useClientStore = create<ClientStore>((set, get) => ({
     }
     set({ clients });
   },
-  updatePaid: async (
-    id: number,
-    firstName: string,
-    lastName: string,
-    orderNumber: string,
-  ) => {
+  updatePaid: async (id: number, isBusiness: boolean, orderNumber: string) => {
     const { data, error } = await supabase.rpc("update_order_register", {
       p_order_id: id,
     });
@@ -44,6 +39,7 @@ const useClientStore = create<ClientStore>((set, get) => ({
       }
       return client;
     });
+    const currentClient = get().clients.find((client) => client.id === id);
 
     const email = get().clients.find((client) => client.id === id)?.email;
 
@@ -51,7 +47,14 @@ const useClientStore = create<ClientStore>((set, get) => ({
       await sendEmailUser(
         email as string,
         `¡Tu registro se completó! Orden nº ${orderNumber}`,
-        successRegister(firstName, lastName),
+        isBusiness
+          ? successRegisterBusiness(
+              currentClient?.Account?.Business?.business_name as string,
+            )
+          : successRegister(
+              currentClient?.Account?.Personal?.first_name as string,
+              currentClient?.Account?.Personal?.last_name as string,
+            ),
       );
     }
     set({ clients: newClients });
