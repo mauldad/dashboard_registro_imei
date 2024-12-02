@@ -31,6 +31,7 @@ import type { IOrder } from "../types/client";
 import useClientStore from "../store/clients";
 import { exportImeisToCSV } from "../utils/export";
 import EditOrderModal from "./EditOrderModal";
+import toast from "react-hot-toast";
 
 const columnHelper = createColumnHelper<IOrder>();
 
@@ -275,6 +276,9 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
         const orderNumber = info.row.original.order_number;
         const isBusiness = info.row.original.Account?.is_business as boolean;
         const newStatus = await updatePaid(orderId, isBusiness, orderNumber);
+        if (newStatus) {
+          toast.success("Correo enviado.");
+        }
         setLoading(false);
         setIsOpen(false);
       };
