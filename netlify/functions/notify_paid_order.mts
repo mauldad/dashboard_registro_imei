@@ -9,7 +9,7 @@ export default async (req: Request, context: Context) => {
     const { orderNumber } = body;
     const sendEmail = await resend.emails.send({
       from: "registrodeimei.cl <no-reply@correot.registrodeimei.cl>",
-      to: "linyers666@gmail.com",
+      to: "dennis.maldonado@mbservices.cl",
       subject: `Nuevo registro de imei #${orderNumber}`,
       html: `Nueva orden registrada y pagada: ${orderNumber}`,
     });
