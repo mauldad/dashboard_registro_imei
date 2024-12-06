@@ -6,13 +6,12 @@ const resend = new Resend(process.env.RESEND_API_KEY as string);
 export default async (req: Request, context: Context) => {
   try {
     const body = await req.json();
-    const { toEmail, subject, html } = body;
-    console.log(body);
+    const { orderNumber } = body;
     const sendEmail = await resend.emails.send({
       from: "registrodeimei.cl <no-reply@correot.registrodeimei.cl>",
-      to: toEmail,
-      subject,
-      html,
+      to: "linyers666@gmail.com",
+      subject: `Nuevo registro de imei #${orderNumber}`,
+      html: `Nueva orden registrada y pagada: ${orderNumber}`,
     });
     if (sendEmail.error) {
       throw new Error("Send email failed");
