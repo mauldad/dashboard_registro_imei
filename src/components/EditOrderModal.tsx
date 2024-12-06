@@ -18,6 +18,7 @@ const EditOrderModal = ({
   order: IOrder;
   onClose: () => void;
 }) => {
+  const [loading, setLoading] = useState(false);
   const [updatedOrder, setUpdatedOrder] = useState<IOrder>(order);
   const updateClient = useClientStore((state) => state.updateClient);
 
@@ -52,10 +53,11 @@ const EditOrderModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let data;
+    setLoading(true);
     if (order.Account?.is_business) {
       data = await updateBusinessUser(updatedOrder, order.id);
     } else data = await updatePersonalUser(updatedOrder, order.id);
-
+    setLoading(false);
     if (!data) return;
     updateClient(updatedOrder);
     onClose(); // Cerrar el modal después de enviar la información
@@ -167,14 +169,16 @@ const EditOrderModal = ({
           <div className="flex justify-end space-x-4 mt-4">
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+              className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Guardar cambios
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              disabled={loading}
+              className="px-6 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
