@@ -32,6 +32,7 @@ import useClientStore from "../store/clients";
 import { exportImeisToCSV } from "../utils/export";
 import EditOrderModal from "./EditOrderModal";
 import toast from "react-hot-toast";
+import useAuthStore from "../store/auth";
 
 const columnHelper = createColumnHelper<IOrder>();
 
@@ -266,6 +267,9 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
       const status = info.getValue();
       const updatePaid = useClientStore((state) => state.updatePaid);
 
+      const getChannelToken = useAuthStore((state) => state.getChannelToken);
+      const channel = getChannelToken();
+
       const handleStatusChange = async () => {
         setLoading(true);
         const orderId = info.row.original.id;
@@ -287,7 +291,7 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
         <div className="relative">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            disabled={!info.row.original.paid || loading}
+            disabled={!info.row.original.paid || loading || channel !== "base"}
             className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               status
                 ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
@@ -449,6 +453,13 @@ const ClientsTable = ({
   };
 
   const columns = useMemo(() => createColumns(handleEdit), [handleEdit]);
+
+  const getChannelToken = useAuthStore((state) => state.getChannelToken);
+  const channel = getChannelToken();
+
+  if (channel !== "base") {
+    columns.pop();
+  }
 
   const table = useReactTable({
     data: filteredData,

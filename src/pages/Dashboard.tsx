@@ -13,6 +13,7 @@ import { exportToExcel } from "../utils/export";
 import { mockClients } from "../data/mockClients";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/ClientTableSkeleton";
+import useAuthStore from "../store/auth";
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("all");
@@ -21,13 +22,15 @@ const Dashboard = () => {
   const [monthFilter, setMonthFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
+  const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
 
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients();
+      const channel = getChannelToken();
+      await fetchClients(channel);
       setLoading(false);
     };
     getClients();
