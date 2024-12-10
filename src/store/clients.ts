@@ -7,7 +7,7 @@ import { is } from "date-fns/locale";
 
 interface ClientStore {
   clients: IOrder[];
-  fetchClients: () => Promise<void>;
+  fetchClients: (channel: string) => Promise<void>;
   updatePaid: (
     id: number,
     isBusiness: boolean,
@@ -19,8 +19,8 @@ interface ClientStore {
 
 const useClientStore = create<ClientStore>((set, get) => ({
   clients: [],
-  fetchClients: async () => {
-    const clients = await getClients();
+  fetchClients: async (channel: string) => {
+    const clients = await getClients(channel);
     if (!clients) {
       return;
     }

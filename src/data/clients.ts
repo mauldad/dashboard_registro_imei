@@ -2,8 +2,10 @@ import { IOrder } from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
 
-export async function getClients(): Promise<IOrder[] | undefined> {
-  const { data, error } = await supabase
+export async function getClients(
+  channel: string,
+): Promise<IOrder[] | undefined> {
+  const query = supabase
     .from("Order")
     .select(
       `
@@ -33,9 +35,18 @@ export async function getClients(): Promise<IOrder[] | undefined> {
     )
     .not("Account", "is", null)
     .order("created_at", { ascending: false });
+
+  // Agrega el filtro por canal si no es "base"
+  if (channel !== "base") {
+    query.eq("channel", channel);
+  }
+
+  const { data, error } = await query;
+
   if (error) {
     throw new Error(error.message);
   }
+
   return data;
 }
 

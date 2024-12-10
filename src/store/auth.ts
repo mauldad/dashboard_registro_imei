@@ -8,6 +8,8 @@ interface AuthStore {
   signIn: (email: string, password: string, remember: boolean) => Promise<void>;
   setToken: (token: string) => void;
   removeToken: () => void;
+  getChannelToken: () => string;
+  initialize: () => void;
 }
 
 const useAuthStore = create<AuthStore>()(
@@ -23,15 +25,61 @@ const useAuthStore = create<AuthStore>()(
         if (error) {
           throw new Error("Error iniciando sesión");
         }
-        set({ token: data.session?.access_token, rememberUser: remember });
+
+        const token = data.session?.access_token;
+        if (!token) {
+          throw new Error("Error iniciando sesión");
+        }
+        get().setToken(token);
       },
-      setToken: (token: string) => set({ token }),
+      getChannelToken: () => {
+        const token = get().token;
+        if (!token) {
+          throw new Error("No hay token");
+        }
+
+        const decodeToken = JSON.parse(atob(token.split(".")[1]));
+        return decodeToken.channel;
+      },
+      setToken: (token: string) => {
+        set({ token });
+        scheduleTokenRemoval(token);
+      },
       removeToken: () => set({ token: undefined }),
+      initialize: () => {
+        const token = get().token;
+        if (token) {
+          scheduleTokenRemoval(token);
+        }
+      },
     }),
     {
       name: "auth",
     },
   ),
 );
+
+function scheduleTokenRemoval(token: string) {
+  try {
+    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expTime = tokenPayload.exp;
+
+    if (!expTime || currentTime >= expTime) {
+      useAuthStore.getState().removeToken();
+      return;
+    }
+
+    const timeUntilExpiration = (expTime - currentTime) * 1000;
+
+    setTimeout(() => {
+      useAuthStore.getState().removeToken();
+    }, timeUntilExpiration);
+  } catch (error) {
+    console.error("Error procesando el token:", error);
+  }
+}
+
+useAuthStore.getState().initialize();
 
 export default useAuthStore;

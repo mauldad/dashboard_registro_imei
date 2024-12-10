@@ -10,6 +10,7 @@ import { endOfYear, format, startOfYear, subMonths, subYears } from "date-fns";
 import { es } from "date-fns/locale";
 import { exportToExcel } from "../utils/export";
 import useClientStore from "../store/clients";
+import useAuthStore from "../store/auth";
 
 const Reports = () => {
   const [timeRange, setTimeRange] = useState("month");
@@ -21,13 +22,16 @@ const Reports = () => {
   const [selectedSemester, setSelectedSemester] = useState("1");
   const [loading, setLoading] = useState(false);
 
+  const getChannelToken = useAuthStore((state) => state.getChannelToken);
+  const channel = getChannelToken();
+
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
 
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients();
+      await fetchClients(channel);
       setLoading(false);
     };
     getClients();
@@ -99,7 +103,7 @@ const Reports = () => {
         break;
     }
 
-    exportToExcel(filteredData, reportName);
+    exportToExcel(filteredData, reportName, channel);
   };
 
   const getStats = () => {
@@ -174,20 +178,22 @@ const Reports = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-gray-600">Total Recaudado</p>
-              <p className="text-2xl font-semibold mt-1">
-                {stats.totalAmount.toLocaleString("es-CL", {
-                  style: "currency",
-                  currency: "CLP",
-                })}
-              </p>
+        {channel === "base" && (
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-600">Total Recaudado</p>
+                <p className="text-2xl font-semibold mt-1">
+                  {stats.totalAmount.toLocaleString("es-CL", {
+                    style: "currency",
+                    currency: "CLP",
+                  })}
+                </p>
+              </div>
+              <Calendar className="w-5 h-5 text-green-500" />
             </div>
-            <Calendar className="w-5 h-5 text-green-500" />
           </div>
-        </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm">

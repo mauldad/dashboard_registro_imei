@@ -8,6 +8,7 @@ import { es } from "date-fns/locale";
 import { mockClients } from "../data/mockClients";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/ClientTableSkeleton";
+import useAuthStore from "../store/auth";
 
 const Clients = () => {
   const [filter, setFilter] = useState("all");
@@ -18,13 +19,16 @@ const Clients = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const getChannelToken = useAuthStore((state) => state.getChannelToken);
+  const channel = getChannelToken();
+
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
 
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients();
+      await fetchClients(channel);
       setLoading(false);
     };
     getClients();
@@ -58,7 +62,7 @@ const Clients = () => {
             Nuevo Registro
           </button> */}
           <button
-            onClick={() => exportToExcel(clients, "clientes-export")}
+            onClick={() => exportToExcel(clients, "clientes-export", channel)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
           >
