@@ -136,25 +136,27 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-gray-600">Total Registros</p>
-              <p className="text-2xl font-semibold mt-1">{stats.total}</p>
+        {channel === "base" && (
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-600">Total Registros</p>
+                <p className="text-2xl font-semibold mt-1">{stats.total}</p>
+              </div>
+              <PieChart className="w-5 h-5 text-blue-500" />
             </div>
-            <PieChart className="w-5 h-5 text-blue-500" />
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Empresas</span>
+                <span className="font-medium">{stats.business}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Personas</span>
+                <span className="font-medium">{stats.personal}</span>
+              </div>
+            </div>
           </div>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Empresas</span>
-              <span className="font-medium">{stats.business}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Personas</span>
-              <span className="font-medium">{stats.personal}</span>
-            </div>
-          </div>
-        </div>
+        )}
 
         <div className="bg-white p-6 rounded-xl shadow-sm">
           <div className="flex justify-between items-start">

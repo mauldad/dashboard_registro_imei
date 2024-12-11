@@ -23,6 +23,7 @@ export async function getClients(
       import_receipt_url,
       registrant_name,
       email,
+      channel,
       Imei (imei_number, brand, model, imei_image),
       Account (
         id,

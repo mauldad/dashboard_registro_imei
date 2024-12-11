@@ -16,6 +16,7 @@ const Clients = () => {
   const [registrationFilter, setRegistrationFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -128,24 +129,38 @@ const Clients = () => {
                     ))}
                   </select>
                 </div>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos los Clientes</option>
-                  <option value="business">Empresas</option>
-                  <option value="personal">Personas</option>
-                </select>
-                <select
-                  value={paymentFilter}
-                  onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos los Pagos</option>
-                  <option value="paid">Pagados</option>
-                  <option value="pending">Pendientes de Pago</option>
-                </select>
+                {channel === "base" && (
+                  <>
+                    <select
+                      value={channelFilter}
+                      onChange={(e) => setChannelFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Canales</option>
+                      <option value="base">Base</option>
+                      <option value="falabella">Falabella</option>
+                      <option value="walmart">Walmart</option>
+                    </select>
+                    <select
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Clientes</option>
+                      <option value="business">Empresas</option>
+                      <option value="personal">Personas</option>
+                    </select>
+                    <select
+                      value={paymentFilter}
+                      onChange={(e) => setPaymentFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Pagos</option>
+                      <option value="paid">Pagados</option>
+                      <option value="pending">Pendientes de Pago</option>
+                    </select>
+                  </>
+                )}
                 <select
                   value={registrationFilter}
                   onChange={(e) => setRegistrationFilter(e.target.value)}
@@ -167,6 +182,7 @@ const Clients = () => {
               registrationFilter={registrationFilter}
               monthFilter={monthFilter}
               clients={clients}
+              channelFilter={channelFilter}
               searchQuery={searchQuery}
             />
           )}
