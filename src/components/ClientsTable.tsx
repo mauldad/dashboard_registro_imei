@@ -43,6 +43,12 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
       <span className="font-mono text-xs">{info.getValue()}</span>
     ),
   }),
+  columnHelper.accessor("channel", {
+    header: "Canal",
+    cell: (info) => (
+      <span className="font-mono uppercase">{info.getValue()}</span>
+    ),
+  }),
   columnHelper.accessor("Account.rut", {
     header: "RUT",
     cell: (info) => (
@@ -230,6 +236,7 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
     ),
   }),
   columnHelper.accessor("total_paid", {
+    id: "total_paid",
     header: "Total Pagado",
     cell: (info) => (
       <div className="flex items-center gap-1">
@@ -368,6 +375,7 @@ interface ClientsTableProps {
   paymentFilter: string;
   registrationFilter: string;
   monthFilter: string;
+  channelFilter: string;
   searchQuery?: string;
   clients: IOrder[];
 }
@@ -377,6 +385,7 @@ const ClientsTable = ({
   paymentFilter,
   registrationFilter,
   monthFilter,
+  channelFilter,
   clients,
   searchQuery = undefined,
 }: ClientsTableProps) => {
@@ -391,6 +400,10 @@ const ClientsTable = ({
           ? client.Account?.is_business
           : !client.Account?.is_business,
       );
+    }
+
+    if (channelFilter !== "all") {
+      result = result.filter((client) => client.channel === channelFilter);
     }
 
     if (paymentFilter !== "all") {
@@ -443,6 +456,7 @@ const ClientsTable = ({
     paymentFilter,
     registrationFilter,
     monthFilter,
+    channelFilter,
     searchQuery,
     clients,
   ]);
@@ -452,14 +466,23 @@ const ClientsTable = ({
     setShowEditModal(true);
   };
 
-  const columns = useMemo(() => createColumns(handleEdit), [handleEdit]);
-
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const channel = getChannelToken();
 
-  if (channel !== "base") {
-    columns.pop();
-  }
+  const columns = useMemo(() => {
+    const allColumns = createColumns(handleEdit);
+
+    if (channel !== "base") {
+      return allColumns.filter(
+        (column) =>
+          column.id !== "excel" &&
+          column.id !== "total_paid" &&
+          column.id !== "actions",
+      );
+    }
+
+    return allColumns;
+  }, [handleEdit, channel]);
 
   const table = useReactTable({
     data: filteredData,
