@@ -48,6 +48,7 @@ export const exportToExcel = (
 export const exportImeisToCSV = (imeis: IImei[]): string => {
   const exportData = imeis.map((imei) => ({
     Numero: imei.imei_number,
+    Tipo: imei.type,
     Marca: imei.brand,
     Modelo: imei.model,
   }));

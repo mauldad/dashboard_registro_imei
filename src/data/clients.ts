@@ -24,7 +24,7 @@ export async function getClients(
       registrant_name,
       email,
       channel,
-      Imei (imei_number, brand, model, imei_image),
+      Imei (imei_number, brand, model, imei_image, type),
       Account (
         id,
         rut,
