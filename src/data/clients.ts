@@ -21,7 +21,7 @@ export async function getClients(): Promise<IOrder[] | undefined> {
       import_receipt_url,
       registrant_name,
       email,
-      Imei (imei_number, brand, model, imei_image),
+      Imei (imei_number, brand, model, imei_image, type),
       Account (
         id,
         rut,

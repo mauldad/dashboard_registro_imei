@@ -49,6 +49,7 @@ export interface IOrder {
 export interface IImei {
   imei_number: string;
   brand: string;
+  type: string;
   model: string;
   imei_image: string;
 }
