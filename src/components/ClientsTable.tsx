@@ -46,7 +46,9 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
   columnHelper.accessor("channel", {
     header: "Canal",
     cell: (info) => (
-      <span className="font-mono uppercase">{info.getValue()}</span>
+      <span className="font-mono uppercase">
+        {info.getValue() === "base" ? "registrodeimei.cl" : info.getValue()}
+      </span>
     ),
   }),
   columnHelper.accessor("Account.rut", {
@@ -103,10 +105,12 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
             href={info.getValue() as string}
             className="text-blue-500 hover:text-blue-700 underline"
           >
-            {info.row.original.Account?.is_business ||
-            info.row.original.import_receipt_url
-              ? "Exportacion"
-              : "Compra"}
+            {info.row.original.channel !== "base"
+              ? info.row.original.purchase_number
+              : info.row.original.Account?.is_business ||
+                  info.row.original.import_receipt_url
+                ? "Exportacion"
+                : "Compra"}
           </a>
         </div>
       ),

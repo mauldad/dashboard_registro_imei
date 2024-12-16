@@ -45,6 +45,7 @@ export interface IOrder {
   registrant_name: string | null;
   email: string;
   channel: string;
+  purchase_number?: string;
 }
 
 export interface IImei {
