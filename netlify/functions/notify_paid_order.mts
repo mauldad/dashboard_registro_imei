@@ -2,6 +2,7 @@ import type { Context } from "@netlify/functions";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY as string);
+const toEmail = process.env.NOTIFY_EMAIL as string;
 
 export default async (req: Request, context: Context) => {
   try {
@@ -9,7 +10,7 @@ export default async (req: Request, context: Context) => {
     const { orderNumber } = body;
     const sendEmail = await resend.emails.send({
       from: "registrodeimei.cl <no-reply@correot.registrodeimei.cl>",
-      to: "dennis.maldonado@mbservices.cl",
+      to: toEmail,
       subject: `Nuevo registro de imei #${orderNumber}`,
       html: `Nueva orden registrada y pagada: ${orderNumber}`,
     });
