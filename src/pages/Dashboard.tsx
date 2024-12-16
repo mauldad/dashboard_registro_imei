@@ -13,21 +13,25 @@ import { exportToExcel } from "../utils/export";
 import { mockClients } from "../data/mockClients";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/ClientTableSkeleton";
+import useAuthStore from "../store/auth";
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [registrationFilter, setRegistrationFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
+  const getChannelToken = useAuthStore((state) => state.getChannelToken);
+  const channel = getChannelToken();
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
 
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients();
+      await fetchClients(channel);
       setLoading(false);
     };
     getClients();
@@ -39,7 +43,7 @@ const Dashboard = () => {
     const validados = clients.filter((c) => c.registered).length;
     const pendientes = clients.filter((c) => !c.registered).length;
 
-    return [
+    const stats = [
       {
         title: "Total Clientes",
         value: totalClients.toString(),
@@ -65,6 +69,11 @@ const Dashboard = () => {
         color: "bg-red-500",
       },
     ];
+
+    if (channel !== "base") {
+      return stats.filter((s) => s.title !== "Empresas");
+    }
+    return stats;
   }, [clients]);
 
   return (
@@ -108,43 +117,45 @@ const Dashboard = () => {
           <AnalyticsChart />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">
-            Distribución de Clientes
-          </h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Empresas</span>
-              <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-purple-500 h-2.5 rounded-full"
-                  style={{
-                    width: `${
-                      (clients.filter((c) => c.Account?.is_business).length /
-                        clients.length) *
-                      100
-                    }%`,
-                  }}
-                ></div>
+        {channel === "base" && (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold mb-4">
+              Distribución de Clientes
+            </h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Empresas</span>
+                <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-purple-500 h-2.5 rounded-full"
+                    style={{
+                      width: `${
+                        (clients.filter((c) => c.Account?.is_business).length /
+                          clients.length) *
+                        100
+                      }%`,
+                    }}
+                  ></div>
+                </div>
               </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Personas</span>
-              <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-500 h-2.5 rounded-full"
-                  style={{
-                    width: `${
-                      (clients.filter((c) => !c.Account?.is_business).length /
-                        clients.length) *
-                      100
-                    }%`,
-                  }}
-                ></div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Personas</span>
+                <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-500 h-2.5 rounded-full"
+                    style={{
+                      width: `${
+                        (clients.filter((c) => !c.Account?.is_business).length /
+                          clients.length) *
+                        100
+                      }%`,
+                    }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm">
@@ -159,24 +170,38 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="flex gap-2">
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos</option>
-                  <option value="business">Empresas</option>
-                  <option value="personal">Personas</option>
-                </select>
-                <select
-                  value={paymentFilter}
-                  onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos los Pagos</option>
-                  <option value="paid">Pagados</option>
-                  <option value="pending">Pendientes</option>
-                </select>
+                {channel === "base" && (
+                  <>
+                    <select
+                      value={channelFilter}
+                      onChange={(e) => setChannelFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Canales</option>
+                      <option value="base">Base</option>
+                      <option value="falabella">Falabella</option>
+                      <option value="walmart">Walmart</option>
+                    </select>
+                    <select
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos</option>
+                      <option value="business">Empresas</option>
+                      <option value="personal">Personas</option>
+                    </select>
+                    <select
+                      value={paymentFilter}
+                      onChange={(e) => setPaymentFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Pagos</option>
+                      <option value="paid">Pagados</option>
+                      <option value="pending">Pendientes</option>
+                    </select>
+                  </>
+                )}
                 <select
                   value={registrationFilter}
                   onChange={(e) => setRegistrationFilter(e.target.value)}
@@ -197,6 +222,7 @@ const Dashboard = () => {
               paymentFilter={paymentFilter}
               registrationFilter={registrationFilter}
               monthFilter={monthFilter}
+              channelFilter={channelFilter}
               clients={clients}
             />
           )}

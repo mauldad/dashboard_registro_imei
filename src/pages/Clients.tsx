@@ -8,6 +8,7 @@ import { es } from "date-fns/locale";
 import { mockClients } from "../data/mockClients";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/ClientTableSkeleton";
+import useAuthStore from "../store/auth";
 
 const Clients = () => {
   const [filter, setFilter] = useState("all");
@@ -15,8 +16,12 @@ const Clients = () => {
   const [registrationFilter, setRegistrationFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const getChannelToken = useAuthStore((state) => state.getChannelToken);
+  const channel = getChannelToken();
 
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
@@ -24,7 +29,7 @@ const Clients = () => {
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients();
+      await fetchClients(channel);
       setLoading(false);
     };
     getClients();
@@ -58,7 +63,7 @@ const Clients = () => {
             Nuevo Registro
           </button> */}
           <button
-            onClick={() => exportToExcel(clients, "clientes-export")}
+            onClick={() => exportToExcel(clients, "clientes-export", channel)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
           >
@@ -124,24 +129,38 @@ const Clients = () => {
                     ))}
                   </select>
                 </div>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos los Clientes</option>
-                  <option value="business">Empresas</option>
-                  <option value="personal">Personas</option>
-                </select>
-                <select
-                  value={paymentFilter}
-                  onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos los Pagos</option>
-                  <option value="paid">Pagados</option>
-                  <option value="pending">Pendientes de Pago</option>
-                </select>
+                {channel === "base" && (
+                  <>
+                    <select
+                      value={channelFilter}
+                      onChange={(e) => setChannelFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Canales</option>
+                      <option value="base">Base</option>
+                      <option value="falabella">Falabella</option>
+                      <option value="walmart">Walmart</option>
+                    </select>
+                    <select
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Clientes</option>
+                      <option value="business">Empresas</option>
+                      <option value="personal">Personas</option>
+                    </select>
+                    <select
+                      value={paymentFilter}
+                      onChange={(e) => setPaymentFilter(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="all">Todos los Pagos</option>
+                      <option value="paid">Pagados</option>
+                      <option value="pending">Pendientes de Pago</option>
+                    </select>
+                  </>
+                )}
                 <select
                   value={registrationFilter}
                   onChange={(e) => setRegistrationFilter(e.target.value)}
@@ -163,6 +182,7 @@ const Clients = () => {
               registrationFilter={registrationFilter}
               monthFilter={monthFilter}
               clients={clients}
+              channelFilter={channelFilter}
               searchQuery={searchQuery}
             />
           )}

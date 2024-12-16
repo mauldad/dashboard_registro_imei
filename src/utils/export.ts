@@ -1,7 +1,11 @@
 import * as XLSX from "xlsx";
 import { Client, IImei, IOrder } from "../types/client";
 
-export const exportToExcel = (data: IOrder[], filename: string) => {
+export const exportToExcel = (
+  data: IOrder[],
+  filename: string,
+  channel: string,
+) => {
   const imeiData = data.map((order) =>
     order.Imei.map((imei, index) => ({
       [`IMEI ${index + 1}`]: imei.imei_number || "",
@@ -19,17 +23,13 @@ export const exportToExcel = (data: IOrder[], filename: string) => {
     Nacionalidad: client.Account?.Personal?.nationality,
     Email: client.email,
     WhatsApp: client.Account?.Personal?.phone_number,
-    // "IMEI 1": client.imei1.numero,
-    // "Marca 1": client.imei1.marca,
-    // "Modelo 1": client.imei1.modelo,
-    // "IMEI 2": client.imei2?.numero || "",
-    // "Marca 2": client.imei2?.marca || "",
-    // "Modelo 2": client.imei2?.modelo || "",
     "Registro IMEI": client.has_registration ? "Sí" : "No",
     "Antivirus Premium": client.has_antivirus ? "Sí" : "No",
-    "Total Pagado": client.total_paid.toLocaleString("es-CL", {
-      style: "currency",
-      currency: "CLP",
+    ...(channel === "base" && {
+      "Total Pagado": client.total_paid.toLocaleString("es-CL", {
+        style: "currency",
+        currency: "CLP",
+      }),
     }),
     "Estado Registro": client.registered ? "Registrado" : "En Espera",
     "Estado Pago": client.paid ? "Pagado" : "Pendiente",
