@@ -21,6 +21,11 @@ const EditOrderModal = ({
   const [loading, setLoading] = useState(false);
   const [updatedOrder, setUpdatedOrder] = useState<IOrder>(order);
   const updateClient = useClientStore((state) => state.updateClient);
+  const paidEnum = {
+    pending: "Pendiente",
+    approved: "Pagado",
+    rejected: "Rechazado",
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,6 +54,14 @@ const EditOrderModal = ({
   //     },
   //   }));
   // };
+
+  const handlePaidChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const status = e.target.value as "approved" | "pending" | "rejected";
+    setUpdatedOrder((prevOrder) => ({
+      ...prevOrder,
+      paid: status,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,14 +169,18 @@ const EditOrderModal = ({
             <label htmlFor="paid" className="text-sm font-medium text-gray-600">
               Orden Pagada
             </label>
-            <input
-              type="checkbox"
+            <select
               id="paid"
-              name="paid"
-              checked={updatedOrder.paid}
-              onChange={handleCheckboxChange}
-              className="h-4 w-4 text-primary focus:ring-primary"
-            />
+              value={updatedOrder.paid}
+              onChange={handlePaidChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            >
+              {Object.entries(paidEnum).map(([key, value]) => (
+                <option key={key} value={key}>
+                  {value}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-end space-x-4 mt-4">
