@@ -156,7 +156,7 @@ const Clients = () => {
                       className="px-3 py-2 border rounded-lg text-sm"
                     >
                       <option value="all">Todos los Pagos</option>
-                      <option value="paid">Pagados</option>
+                      <option value="approved">Pagados</option>
                       <option value="pending">Pendientes de Pago</option>
                     </select>
                   </>

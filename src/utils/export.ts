@@ -6,6 +6,12 @@ export const exportToExcel = (
   filename: string,
   channel: string,
 ) => {
+  const paidEnum = {
+    pending: "Pendiente",
+    approved: "Pagado",
+    rejected: "Rechazado",
+  };
+
   const imeiData = data.map((order) =>
     order.Imei.map((imei, index) => ({
       [`IMEI ${index + 1}`]: imei.imei_number || "",
@@ -32,7 +38,7 @@ export const exportToExcel = (
       }),
     }),
     "Estado Registro": client.registered ? "Registrado" : "En Espera",
-    "Estado Pago": client.paid ? "Pagado" : "Pendiente",
+    "Estado Pago": paidEnum[client.paid],
     "Fecha Pago": client.created_at,
     ...imeiData[index].reduce((acc, curr) => ({ ...acc, ...curr }), {}),
   }));
