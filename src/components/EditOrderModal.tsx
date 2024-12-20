@@ -77,8 +77,14 @@ const EditOrderModal = ({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 max-w-3xl w-full max-h-screen overflow-y-auto space-y-4">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg shadow-lg p-6 max-w-3xl w-full max-h-screen overflow-y-auto space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex justify-between">
           <span>Editar Orden</span>
           <span className="text-gray-400">#{order.order_number}</span>
