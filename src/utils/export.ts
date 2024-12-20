@@ -28,7 +28,7 @@ export const exportToExcel = (
     "Tipo Cliente": client.Account?.is_business ? "Empresa" : "Personal",
     Nacionalidad: client.Account?.Personal?.nationality,
     Email: client.email,
-    WhatsApp: client.Account?.Personal?.phone_number,
+    WhatsApp: client.phone_number,
     "Registro IMEI": client.has_registration ? "Sí" : "No",
     "Antivirus Premium": client.has_antivirus ? "Sí" : "No",
     ...(channel === "base" && {
