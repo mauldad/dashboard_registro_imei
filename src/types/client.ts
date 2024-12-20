@@ -44,6 +44,7 @@ export interface IOrder {
   purchase_receipt_url: string | null;
   registrant_name: string | null;
   email: string;
+  phone_number: string;
   channel: string;
   purchase_number?: string;
 }
@@ -72,6 +73,5 @@ interface IPersonal {
   last_name: string;
   first_name: string;
   nationality: string;
-  phone_number: string;
   id_card_url: string;
 }
