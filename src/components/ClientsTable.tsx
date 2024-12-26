@@ -90,6 +90,23 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
       ),
     },
   ),
+  columnHelper.accessor("email", {
+    header: "Email",
+    cell: (info) => (
+      <a
+        href={`mailto:${info.getValue()}`}
+        className="font-mono text-xs text-blue-500 hover:text-blue-700 underline"
+      >
+        {info.getValue()}
+      </a>
+    ),
+  }),
+  columnHelper.accessor("phone_number", {
+    header: "Teléfono",
+    cell: (info) => (
+      <span className="font-mono text-xs">{info.getValue()}</span>
+    ),
+  }),
   columnHelper.accessor(
     (row) =>
       row.Account?.is_business || row.import_receipt_url
