@@ -44,7 +44,7 @@ export interface IOrder {
   purchase_receipt_url: string | null;
   registrant_name: string | null;
   email: string;
-  phone_number: string;
+  phone_number: string | null;
   channel: string;
   purchase_number?: string;
 }
