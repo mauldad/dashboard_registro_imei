@@ -1,8 +1,13 @@
 import { create } from "zustand";
 import { getClients, sendEmailUser } from "../data/clients";
-import { IOrder } from "../types/client";
+import { IOrder, PaymentStatus } from "../types/client";
 import supabase from "../data/supabase";
-import { successRegister, successRegisterBusiness } from "../assets/mails";
+import {
+  rejectedRegister,
+  rejectedRegisterBusiness,
+  successRegister,
+  successRegisterBusiness,
+} from "../assets/mails";
 import { is } from "date-fns/locale";
 
 interface ClientStore {
@@ -14,6 +19,7 @@ interface ClientStore {
     orderNumber: string,
   ) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;
+  rejectClient: (rejectedClient: IOrder, reason: string) => Promise<void>;
   deleteUser: (id: number, token: string) => Promise<void>;
 }
 
@@ -68,6 +74,46 @@ const useClientStore = create<ClientStore>((set, get) => ({
       return client;
     });
     set({ clients: newClients });
+  },
+  rejectClient: async (rejectedClient: IOrder, reason: string) => {
+    const { data, error } = await supabase
+      .from("Order")
+      .update({
+        paid: "rejected",
+        registered: false,
+        reject_reason: reason,
+      })
+      .eq("id", rejectedClient.id);
+
+    if (error) throw new Error(error.message);
+
+    const newClients = get().clients.map((client) => {
+      if (client.id === rejectedClient.id) {
+        return {
+          ...client,
+          paid: "rejected" as PaymentStatus,
+          registered: false,
+          // reason: reason,
+        };
+      }
+      return client;
+    });
+    set({ clients: newClients });
+
+    await sendEmailUser(
+      rejectedClient.email as string,
+      `Registro rechazado, Orden nº ${rejectedClient.order_number}`,
+      rejectedClient.Account?.is_business
+        ? rejectedRegisterBusiness(
+            rejectedClient?.Account?.Business?.business_name as string,
+            reason,
+          )
+        : rejectedRegister(
+            rejectedClient?.Account?.Personal?.first_name as string,
+            rejectedClient?.Account?.Personal?.last_name as string,
+            reason,
+          ),
+    );
   },
   deleteUser: async (id: number, token: string) => {
     const { data, error } = await supabase.rpc("delete_user", {

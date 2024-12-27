@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IImei, IOrder } from "../types/client";
+import { IImei, IOrder, PaymentStatus } from "../types/client";
 import { Building2, Plus, Trash2, User } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -56,7 +56,7 @@ const EditOrderModal = ({
   // };
 
   const handlePaidChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const status = e.target.value as "approved" | "pending" | "rejected";
+    const status = e.target.value as PaymentStatus;
     setUpdatedOrder((prevOrder) => ({
       ...prevOrder,
       paid: status,

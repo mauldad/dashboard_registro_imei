@@ -8,6 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  Ban,
   Building2,
   Calendar,
   CheckCircle,
@@ -33,10 +34,16 @@ import { exportImeisToCSV } from "../utils/export";
 import EditOrderModal from "./EditOrderModal";
 import toast from "react-hot-toast";
 import useAuthStore from "../store/auth";
+import RejectOrderModal from "./RejectOrderModal";
 
 const columnHelper = createColumnHelper<IOrder>();
 
-const createColumns = (handleEdit: (order: IOrder) => void) => [
+interface CreateColumnsProps {
+  handleEdit: (order: IOrder) => void;
+  handleReject: (order: IOrder) => void;
+}
+
+const createColumns = ({ handleEdit, handleReject }: CreateColumnsProps) => [
   columnHelper.accessor("order_number", {
     header: "Orden",
     cell: (info) => (
@@ -402,6 +409,16 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
           >
             <Pencil className="w-4 h-4" />
           </button>
+          <button
+            onClick={() => {
+              handleReject(info.row.original);
+            }}
+            className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:text-red-300"
+            title="Rechazar registro"
+            disabled={info.row.original.paid === "rejected"}
+          >
+            <Ban className="w-4 h-4" />
+          </button>
         </div>
       );
     },
@@ -429,6 +446,9 @@ const ClientsTable = ({
 }: ClientsTableProps) => {
   const [editOrder, setEditOrder] = useState<IOrder | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [rejectOrder, setRejectOrder] = useState<IOrder | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+
   const filteredData = React.useMemo(() => {
     let result = clients;
 
@@ -497,16 +517,21 @@ const ClientsTable = ({
     clients,
   ]);
 
-  const handleEdit = (order: IOrder) => {
-    setEditOrder(order);
-    setShowEditModal(true);
-  };
-
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const channel = getChannelToken();
 
   const columns = useMemo(() => {
-    const allColumns = createColumns(handleEdit);
+    const handleEdit = (order: IOrder) => {
+      setEditOrder(order);
+      setShowEditModal(true);
+    };
+    const handleReject = (order: IOrder) => {
+      console.log(order);
+      setRejectOrder(order);
+      setShowRejectModal(true);
+    };
+
+    const allColumns = createColumns({ handleEdit, handleReject });
 
     if (channel !== "base") {
       return allColumns.filter(
@@ -518,7 +543,7 @@ const ClientsTable = ({
     }
 
     return allColumns;
-  }, [handleEdit, channel]);
+  }, [channel]);
 
   const table = useReactTable({
     data: filteredData,
@@ -539,6 +564,12 @@ const ClientsTable = ({
         <EditOrderModal
           order={editOrder as IOrder}
           onClose={() => setShowEditModal(false)}
+        />
+      )}
+      {showRejectModal && (
+        <RejectOrderModal
+          order={rejectOrder as IOrder}
+          onClose={() => setShowRejectModal(false)}
         />
       )}
       <div className="overflow-x-auto">

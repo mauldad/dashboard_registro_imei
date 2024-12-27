@@ -50,14 +50,14 @@ const RejectOrderModal = ({
             >
               Razón
             </label>
-            <input
+            <textarea
               required
-              type="text"
               id="reason"
               name="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="mt-1 p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              rows="4" // Puedes ajustar el número de filas según lo necesites
             />
           </div>
 
