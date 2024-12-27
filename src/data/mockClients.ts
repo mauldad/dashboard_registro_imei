@@ -1,4 +1,4 @@
-import { Client } from '../types/client';
+import { Client } from "../types/client";
 
 export const mockClients: Client[] = [
   {
@@ -11,18 +11,18 @@ export const mockClients: Client[] = [
     whatsapp: "+56 9 9666 1625",
     type: "personal",
     status: "registered",
-    paymentStatus: "paid",
+    paymentStatus: "approved",
     imei1: {
       numero: "354626223546262",
       marca: "Samsung",
-      modelo: "Galaxy S21"
+      modelo: "Galaxy S21",
     },
     servicios: {
       registroIMEI: true,
-      antivirusPremium: true
+      antivirusPremium: true,
     },
     totalPago: 19980,
-    fechaPago: "2024-02-15"
+    fechaPago: "2024-02-15",
   },
   {
     id: "CL002",
@@ -38,14 +38,14 @@ export const mockClients: Client[] = [
     imei1: {
       numero: "865432109876543",
       marca: "iPhone",
-      modelo: "13 Pro"
+      modelo: "13 Pro",
     },
     servicios: {
       registroIMEI: true,
-      antivirusPremium: false
+      antivirusPremium: false,
     },
     totalPago: 9990,
-    fechaPago: "2024-02-10"
+    fechaPago: "2024-02-10",
   },
   {
     id: "CL003",
@@ -57,18 +57,18 @@ export const mockClients: Client[] = [
     whatsapp: "+56 9 1234 5678",
     type: "personal",
     status: "registered",
-    paymentStatus: "paid",
+    paymentStatus: "approved",
     imei1: {
       numero: "123456789012345",
       marca: "Xiaomi",
-      modelo: "Redmi Note 12"
+      modelo: "Redmi Note 12",
     },
     servicios: {
       registroIMEI: true,
-      antivirusPremium: true
+      antivirusPremium: true,
     },
     totalPago: 19980,
-    fechaPago: "2024-01-15"
+    fechaPago: "2024-01-15",
   },
   {
     id: "CL004",
@@ -80,23 +80,23 @@ export const mockClients: Client[] = [
     whatsapp: "+56 9 7777 7777",
     type: "business",
     status: "registered",
-    paymentStatus: "paid",
+    paymentStatus: "approved",
     imei1: {
       numero: "777777777777777",
       marca: "Samsung",
-      modelo: "A54"
+      modelo: "A54",
     },
     imei2: {
       numero: "888888888888888",
       marca: "Motorola",
-      modelo: "Edge 40"
+      modelo: "Edge 40",
     },
     servicios: {
       registroIMEI: true,
-      antivirusPremium: true
+      antivirusPremium: true,
     },
     totalPago: 19980,
-    fechaPago: "2024-02-01"
+    fechaPago: "2024-02-01",
   },
   {
     id: "CL005",
@@ -112,13 +112,13 @@ export const mockClients: Client[] = [
     imei1: {
       numero: "555555555555555",
       marca: "Huawei",
-      modelo: "P40 Lite"
+      modelo: "P40 Lite",
     },
     servicios: {
       registroIMEI: true,
-      antivirusPremium: false
+      antivirusPremium: false,
     },
     totalPago: 9990,
-    fechaPago: "2024-02-20"
-  }
+    fechaPago: "2024-02-20",
+  },
 ];

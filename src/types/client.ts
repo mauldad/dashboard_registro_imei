@@ -8,7 +8,7 @@ export interface Client {
   whatsapp: string;
   type: "business" | "personal";
   status: "registered" | "waiting";
-  paymentStatus: "paid" | "pending";
+  paymentStatus: "approved" | "pending";
   imei1: {
     numero: string;
     marca: string;
@@ -31,7 +31,7 @@ export interface IOrder {
   id: number;
   order_number: string;
   total_paid: number;
-  paid: boolean;
+  paid: "pending" | "approved" | "rejected";
   created_at: string;
   Imei: IImei[];
   Account: IAccount | null;
@@ -44,7 +44,9 @@ export interface IOrder {
   purchase_receipt_url: string | null;
   registrant_name: string | null;
   email: string;
+  phone_number: string | null;
   channel: string;
+  purchase_number?: string;
 }
 
 export interface IImei {
@@ -71,6 +73,5 @@ interface IPersonal {
   last_name: string;
   first_name: string;
   nationality: string;
-  phone_number: string;
   id_card_url: string;
 }

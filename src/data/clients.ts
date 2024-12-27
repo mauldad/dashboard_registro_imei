@@ -23,13 +23,15 @@ export async function getClients(
       import_receipt_url,
       registrant_name,
       email,
+      phone_number,
       channel,
+      purchase_number,
       Imei (imei_number, brand, model, imei_image, type),
       Account (
         id,
         rut,
         is_business,
-        Personal (first_name, last_name, nationality, phone_number, id_card_url),
+        Personal (first_name, last_name, nationality, id_card_url),
         Business (business_name)
       )
     `,

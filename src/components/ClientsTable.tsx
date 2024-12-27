@@ -46,7 +46,9 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
   columnHelper.accessor("channel", {
     header: "Canal",
     cell: (info) => (
-      <span className="font-mono uppercase">{info.getValue()}</span>
+      <span className="font-mono uppercase">
+        {info.getValue() === "base" ? "registrodeimei.cl" : info.getValue()}
+      </span>
     ),
   }),
   columnHelper.accessor("Account.rut", {
@@ -88,6 +90,23 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
       ),
     },
   ),
+  columnHelper.accessor("email", {
+    header: "Email",
+    cell: (info) => (
+      <a
+        href={`mailto:${info.getValue()}`}
+        className="font-mono text-xs text-blue-500 hover:text-blue-700 underline"
+      >
+        {info.getValue()}
+      </a>
+    ),
+  }),
+  columnHelper.accessor("phone_number", {
+    header: "Teléfono",
+    cell: (info) => (
+      <span className="font-mono text-xs">{info.getValue()}</span>
+    ),
+  }),
   columnHelper.accessor(
     (row) =>
       row.Account?.is_business || row.import_receipt_url
@@ -103,10 +122,12 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
             href={info.getValue() as string}
             className="text-blue-500 hover:text-blue-700 underline"
           >
-            {info.row.original.Account?.is_business ||
-            info.row.original.import_receipt_url
-              ? "Exportacion"
-              : "Compra"}
+            {info.row.original.channel !== "base"
+              ? info.row.original.purchase_number
+              : info.row.original.Account?.is_business ||
+                  info.row.original.import_receipt_url
+                ? "Exportacion"
+                : "Compra"}
           </a>
         </div>
       ),
@@ -250,21 +271,34 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
   }),
   columnHelper.accessor("paid", {
     header: "Estado Pago",
-    cell: (info) => (
-      <div className="flex items-center gap-1">
-        {info.getValue() ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            <CreditCard className="w-4 h-4" />
-            Pagado
-          </span>
-        ) : (
+    cell: (info) => {
+      const paidEnum = {
+        pending: (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
             <Clock className="w-4 h-4" />
             Pendiente
           </span>
-        )}
-      </div>
-    ),
+        ),
+        approved: (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            <CreditCard className="w-4 h-4" />
+            Pagado
+          </span>
+        ),
+        rejected: (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <CreditCard className="w-4 h-4" />
+            Rechazado
+          </span>
+        ),
+      };
+
+      return (
+        <div className="flex items-center gap-1">
+          {paidEnum[info.getValue()]}
+        </div>
+      );
+    },
   }),
   columnHelper.accessor("registered", {
     header: "Estado Registro",
@@ -298,7 +332,11 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
         <div className="relative">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            disabled={!info.row.original.paid || loading || channel !== "base"}
+            disabled={
+              info.row.original.paid !== "approved" ||
+              loading ||
+              channel !== "base"
+            }
             className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               status
                 ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
@@ -407,9 +445,7 @@ const ClientsTable = ({
     }
 
     if (paymentFilter !== "all") {
-      result = result.filter((client) =>
-        paymentFilter === "paid" ? client.paid : !client.paid,
-      );
+      result = result.filter((client) => paymentFilter === client.paid);
     }
 
     if (registrationFilter !== "all") {
