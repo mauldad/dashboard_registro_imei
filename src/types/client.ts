@@ -27,11 +27,13 @@ export interface Client {
   fechaPago: string;
 }
 
+export type PaymentStatus = "approved" | "pending" | "rejected";
+
 export interface IOrder {
   id: number;
   order_number: string;
   total_paid: number;
-  paid: "pending" | "approved" | "rejected";
+  paid: PaymentStatus;
   created_at: string;
   Imei: IImei[];
   Account: IAccount | null;
