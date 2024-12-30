@@ -11,12 +11,15 @@ import {
   Ban,
   Building2,
   Calendar,
+  Check,
   CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Clipboard,
+  ClipboardCopy,
   Clock,
   CreditCard,
   DollarSign,
@@ -41,9 +44,16 @@ const columnHelper = createColumnHelper<IOrder>();
 interface CreateColumnsProps {
   handleEdit: (order: IOrder) => void;
   handleReject: (order: IOrder) => void;
+  handleCopy: (order: IOrder) => Promise<void>;
+  copiedOrderId: number | null;
 }
 
-const createColumns = ({ handleEdit, handleReject }: CreateColumnsProps) => [
+const createColumns = ({
+  handleEdit,
+  handleReject,
+  handleCopy,
+  copiedOrderId,
+}: CreateColumnsProps) => [
   columnHelper.accessor("order_number", {
     header: "Orden",
     cell: (info) => (
@@ -410,6 +420,17 @@ const createColumns = ({ handleEdit, handleReject }: CreateColumnsProps) => [
             <Pencil className="w-4 h-4" />
           </button>
           <button
+            onClick={async () => await handleCopy(info.row.original)}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Copiar registro"
+          >
+            {copiedOrderId === info.row.original.id ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Clipboard className="w-4 h-4" />
+            )}
+          </button>
+          <button
             onClick={() => {
               handleReject(info.row.original);
             }}
@@ -444,6 +465,7 @@ const ClientsTable = ({
   clients,
   searchQuery = undefined,
 }: ClientsTableProps) => {
+  const [copiedOrderId, setCopiedOrderId] = useState<number | null>(null);
   const [editOrder, setEditOrder] = useState<IOrder | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [rejectOrder, setRejectOrder] = useState<IOrder | null>(null);
@@ -526,12 +548,53 @@ const ClientsTable = ({
       setShowEditModal(true);
     };
     const handleReject = (order: IOrder) => {
-      console.log(order);
       setRejectOrder(order);
       setShowRejectModal(true);
     };
 
-    const allColumns = createColumns({ handleEdit, handleReject });
+    const handleCopyPersonalOrder = async (order: IOrder) => {
+      const data = {
+        imeis: order.Imei.map((imei) => imei.imei_number),
+        brand: order.Imei[0].brand,
+        documentType: "RUT",
+        documentNumber: order.Account?.rut,
+        fullName: `${order.Account?.Personal?.first_name} ${order.Account?.Personal?.last_name}`,
+      };
+      await navigator.clipboard.writeText(JSON.stringify(data));
+    };
+    const handleCopyBusinessOrder = async (order: IOrder) => {
+      const data = {
+        deviceType: order.Imei[0].type,
+        brand: order.Imei[0].brand,
+        documentType: "RUT",
+        documentNumber: order.Account?.rut,
+      };
+      await navigator.clipboard.writeText(JSON.stringify(data));
+
+      const imeis = order.Imei;
+      const csvLink = exportImeisToCSV(imeis);
+      window.location.href = csvLink;
+    };
+    const handleCopy = async (order: IOrder) => {
+      setCopiedOrderId(null);
+
+      if (order.Account?.is_business) {
+        await handleCopyBusinessOrder(order);
+      } else {
+        await handleCopyPersonalOrder(order);
+      }
+
+      setCopiedOrderId(order.id);
+      toast.success("Datos copiados al portapapeles.");
+      setTimeout(() => setCopiedOrderId(null), 2000);
+    };
+
+    const allColumns = createColumns({
+      handleEdit,
+      handleReject,
+      handleCopy,
+      copiedOrderId,
+    });
 
     if (channel !== "base") {
       return allColumns.filter(
@@ -543,7 +606,7 @@ const ClientsTable = ({
     }
 
     return allColumns;
-  }, [channel]);
+  }, [channel, copiedOrderId]);
 
   const table = useReactTable({
     data: filteredData,
