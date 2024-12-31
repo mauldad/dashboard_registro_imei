@@ -215,11 +215,11 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {order ? (
-                    <Button variant="ghost" size="icon" className="h-7 w-7 p-1 text-muted-foreground hover:text-primary hover:bg-transparent transition-colors">
+                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 p-1 text-muted-foreground hover:text-primary hover:bg-transparent transition-colors">
                         <Pencil className="h-4 w-4" />
                     </Button>
                 ) : (
-                    <Button className="gap-1.5">
+                    <Button type="button" className="gap-1.5">
                         <Plus className="h-4 w-4" />
                         Nuevo Cliente
                     </Button>
@@ -238,7 +238,7 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                         <div className="space-y-4">
                             <p className="text-sm text-muted-foreground">Seleccione el tipo de cliente:</p>
 
-                            <Tabs defaultValue="personal" className="space-y-4" onValueChange={(value) => form.setValue("is_business", value === "business")}>
+                            <Tabs defaultValue={order?.Account?.is_business ? 'business' : 'personal'} className="space-y-4" onValueChange={(value) => form.setValue("is_business", value === "business")}>
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="personal">Personal</TabsTrigger>
                                     <TabsTrigger value="business">Empresa</TabsTrigger>
@@ -515,6 +515,7 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
+                                                    disabled={fields.length === 1}
                                                     onClick={() => remove(index)}
                                                 >
                                                     <Trash2 className="h-4 w-4 text-muted-foreground" />
@@ -526,6 +527,7 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                             </Table>
                             <div>
                                 <Button
+                                    type="button"
                                     variant="ghost"
                                     onClick={() => append({
                                         imei_number: ' ',

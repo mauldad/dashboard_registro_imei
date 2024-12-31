@@ -39,6 +39,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import useAuthStore from "@/store/auth";
 
 interface ClientsTableProps {
     orders: IOrder[];
@@ -60,6 +61,8 @@ const ClientsTable = ({
     onPageSizeChange 
 }: ClientsTableProps) => {
     const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+    const getChannelToken = useAuthStore((state) => state.getChannelToken);
+    const channel = getChannelToken();
 
     const handleCopy = async (order: IOrder) => {
         try {
@@ -115,9 +118,9 @@ const ClientsTable = ({
                             <TableHead>Comprobante</TableHead>
                             <TableHead>IMEIs</TableHead>
                             <TableHead>Estado</TableHead>
-                            <TableHead>Pago</TableHead>
+                            {channel === "base" && <TableHead>Pago</TableHead>}
                             <TableHead>Estado de Pago</TableHead>
-                            <TableHead>Acciones</TableHead>
+                            {channel === "base" && <TableHead>Acciones</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -195,9 +198,13 @@ const ClientsTable = ({
                                         </SelectContent>
                                     </Select>
                                 </TableCell>
-                                <TableCell>
-                                    ${order.total_paid.toLocaleString('es-CL')}
-                                </TableCell>
+                                {
+                                  channel === "base" && (
+                                    <TableCell>
+                                      ${order.total_paid.toLocaleString('es-CL')}
+                                    </TableCell>
+                                  )
+                                }
                                 <TableCell className="pl-4">
                                     <Badge
                                         variant={
@@ -217,8 +224,10 @@ const ClientsTable = ({
                                         }
                                     </Badge>
                                 </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
+                                {
+                                  channel === "base" && (
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -240,8 +249,10 @@ const ClientsTable = ({
                                         <span className="hidden" id={`details-trigger-${order.id}`}>
                                             <ClientDetails order={order} />
                                         </span>
-                                    </div>
-                                </TableCell>
+                                      </div>
+                                    </TableCell>
+                                  )
+                                }
                             </TableRow>
                         ))}
                     </TableBody>

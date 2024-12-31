@@ -1,3 +1,4 @@
+import { throws } from "assert";
 import { IOrder } from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
@@ -24,7 +25,16 @@ export async function getClients({
   filters,
   page = 1,
   limit = 10,
-}: GetClientsParams): Promise<{ data: IOrder[]; count: number; page: number; limit: number; totalPages: number } | undefined> {
+}: GetClientsParams): Promise<
+  | {
+      data: IOrder[];
+      count: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }
+  | undefined
+> {
   try {
     const queryBuilder = supabase
       .from("Order")
@@ -69,10 +79,10 @@ export async function getClients({
           )
         )
       `,
-        { count: 'exact' }
+        { count: "exact" },
       )
-      .not('Account', 'is', null)
-      .order('created_at', { ascending: false });
+      .not("Account", "is", null)
+      .order("created_at", { ascending: false });
 
     // Apply base channel filter
     if (channel !== "base") {
@@ -82,7 +92,7 @@ export async function getClients({
     // Apply search query if provided
     if (query) {
       queryBuilder.or(
-        `Account.rut.ilike.%${query}%,Account.Personal.first_name.ilike.%${query}%,Account.Personal.last_name.ilike.%${query}%,Account.Business.business_name.ilike.%${query}%,Imei.imei_number.ilike.%${query}%`
+        `Account.rut.ilike.%${query}%,Account.Personal.first_name.ilike.%${query}%,Account.Personal.last_name.ilike.%${query}%,Account.Business.business_name.ilike.%${query}%,Imei.imei_number.ilike.%${query}%`,
       );
     }
 
@@ -121,7 +131,7 @@ export async function getClients({
       count,
       page,
       limit,
-      totalPages: count ? Math.ceil(count / limit) : 0
+      totalPages: count ? Math.ceil(count / limit) : 0,
     };
   } catch (error) {
     console.error("Get Clients Error:", error);
@@ -236,7 +246,7 @@ export async function updatePersonalUser(formData: IOrder, orderId: number) {
     p_imeis,
   }))(transformedData);
   const { data, error } = await supabase.rpc("update_personal_user", body);
-  if (error) return;
+  if (error) throw new Error(error.message);
   return data;
 }
 
@@ -261,11 +271,11 @@ export async function updateBusinessUser(formData: IOrder, orderId: number) {
     p_imeis,
   }))(transformedData);
   const { data, error } = await supabase.rpc("update_business_user", body);
-  if (error) return;
+  if (error) throw new Error(error.message);
   return data; // Account id and order id
 }
 
-export const uploadPersonalUserIdCard = async (file: File) : Promise<string> => {
+export const uploadPersonalUserIdCard = async (file: File): Promise<string> => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -276,15 +286,17 @@ export const uploadPersonalUserIdCard = async (file: File) : Promise<string> => 
       `personal/id_cards/${uuidFile}-${timestamp}-id_card${extension}`,
       file,
     );
-  if (error) return '';
+  if (error) return "";
 
   const { data: publicUrlData } = supabase.storage
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
 
-export const uploadPersonalPurchaseReceipt = async (file: File): Promise<string> => {
+export const uploadPersonalPurchaseReceipt = async (
+  file: File,
+): Promise<string> => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -295,15 +307,17 @@ export const uploadPersonalPurchaseReceipt = async (file: File): Promise<string>
       `personal/receipts/${uuidFile}-${timestamp}-purchase_receipt${extension}`,
       file,
     );
-  if (error) return '';
+  if (error) return "";
 
   const { data: publicUrlData } = supabase.storage
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
 
-export const uploadBusinessImportReceipt = async (file: File) : Promise<string> => {
+export const uploadBusinessImportReceipt = async (
+  file: File,
+): Promise<string> => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -314,20 +328,20 @@ export const uploadBusinessImportReceipt = async (file: File) : Promise<string> 
       `business/receipts/${uuidFile}-${timestamp}-import_receipt${extension}`,
       file,
     );
-  if (error) return '';
+  if (error) return "";
 
   const { data: publicUrlData } = supabase.storage
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
 
-export const uploadImeiImage = async (file: File) : Promise<string> => {
-  if(file) return '';
-  return '';
-}
+export const uploadImeiImage = async (file: File): Promise<string> => {
+  if (file) return "";
+  return "";
+};
 
-export const uploadExcelImeisFile = async(file: File) => {
+export const uploadExcelImeisFile = async (file: File) => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -341,4 +355,4 @@ export const uploadExcelImeisFile = async(file: File) => {
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
