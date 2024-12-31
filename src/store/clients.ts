@@ -8,11 +8,28 @@ import {
   successRegister,
   successRegisterBusiness,
 } from "../assets/mails";
-import { is } from "date-fns/locale";
 
-interface ClientStore {
+interface ClientState {
   clients: IOrder[];
-  fetchClients: (channel: string) => Promise<void>;
+  totalClients: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  loading: boolean;
+  error: string | null;
+  setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
+  fetchClients: (params: {
+    query?: string;
+    filters?: {
+      month?: string;
+      year?: string;
+      status?: string;
+      payment_status?: string;
+    };
+    page?: number;
+    limit?: number;
+  }) => Promise<void>;
   updatePaid: (
     id: number,
     isBusiness: boolean,
@@ -23,14 +40,40 @@ interface ClientStore {
   deleteUser: (id: number, token: string) => Promise<void>;
 }
 
-const useClientStore = create<ClientStore>((set, get) => ({
+const useClientStore = create<ClientState>((set, get) => ({
   clients: [],
-  fetchClients: async (channel: string) => {
-    const clients = await getClients(channel);
-    if (!clients) {
-      return;
+  totalClients: 0,
+  currentPage: 1,
+  totalPages: 1,
+  pageSize: 10,
+  loading: false,
+  error: null,
+  setError: (error) => set({ error }),
+  setLoading: (loading) => set({ loading }),
+  fetchClients: async (params) => {
+    try {
+      set({ loading: true, error: null });
+      const result = await getClients({
+        channel: "base",
+        ...params,
+        limit: params.limit || 10,
+        page: params.page || 1
+      });
+      
+      if (result) {
+        set({
+          clients: result.data,
+          totalClients: result.count,
+          currentPage: result.page,
+          totalPages: result.totalPages,
+          pageSize: result.limit
+        });
+      }
+    } catch (error) {
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
     }
-    set({ clients });
   },
   updatePaid: async (id: number, isBusiness: boolean, orderNumber: string) => {
     const { data, error } = await supabase.rpc("update_order_register", {
@@ -55,12 +98,12 @@ const useClientStore = create<ClientStore>((set, get) => ({
         `¡Tu registro se completó! Orden nº ${orderNumber}`,
         isBusiness
           ? successRegisterBusiness(
-              currentClient?.Account?.Business?.business_name as string,
-            )
+            currentClient?.Account?.Business?.business_name as string,
+          )
           : successRegister(
-              currentClient?.Account?.Personal?.first_name as string,
-              currentClient?.Account?.Personal?.last_name as string,
-            ),
+            currentClient?.Account?.Personal?.first_name as string,
+            currentClient?.Account?.Personal?.last_name as string,
+          ),
       );
     }
     set({ clients: newClients });
@@ -105,14 +148,14 @@ const useClientStore = create<ClientStore>((set, get) => ({
       `Registro rechazado, Orden nº ${rejectedClient.order_number}`,
       rejectedClient.Account?.is_business
         ? rejectedRegisterBusiness(
-            rejectedClient?.Account?.Business?.business_name as string,
-            reason,
-          )
+          rejectedClient?.Account?.Business?.business_name as string,
+          reason,
+        )
         : rejectedRegister(
-            rejectedClient?.Account?.Personal?.first_name as string,
-            rejectedClient?.Account?.Personal?.last_name as string,
-            reason,
-          ),
+          rejectedClient?.Account?.Personal?.first_name as string,
+          rejectedClient?.Account?.Personal?.last_name as string,
+          reason,
+        ),
     );
   },
   deleteUser: async (id: number, token: string) => {
