@@ -32,6 +32,13 @@ import RejectForm from "./reject-form";
 import { copyBusinessOrder, copyPersonalOrder, exportImeisToCSV } from "@/utils/copy";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ClientsTableProps {
     orders: IOrder[];
@@ -73,6 +80,28 @@ const ClientsTable = ({
             setCopiedOrderId(null);
         }
     };
+
+    const ImageDialog = ({ src, alt }: { src: string; alt: string }) => (
+        <Dialog>
+            <DialogTrigger asChild>
+                <button className="text-primary hover:underline underline-offset-2 transition-colors">
+                    {alt}
+                </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-screen-lg w-[90vw]">
+                <DialogHeader>
+                    <DialogTitle>{alt}</DialogTitle>
+                </DialogHeader>
+                <div className="relative w-full max-h-[80vh] h-full">
+                    <img
+                        src={src}
+                        alt={alt}
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
 
     return (
         <section className="flex-1 flex flex-col space-y-4">
@@ -124,25 +153,20 @@ const ClientsTable = ({
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    {(order.Account?.is_business || order.import_receipt_url) ? (
-                                        <a
-                                            href={order.import_receipt_url || ""}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary hover:underline underline-offset-2 transition-colors"
-                                        >
-                                            Exportación
-                                        </a>
-                                    ) : order.purchase_receipt_url ? (
-                                        <a
-                                            href={order.purchase_receipt_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary hover:underline underline-offset-2 transition-colors"
-                                        >
-                                            Compra
-                                        </a>
-                                    ) : "-"}
+                                    <div className="flex flex-col gap-1">
+                                        {order.import_receipt_url && (
+                                            <ImageDialog
+                                                src={order.import_receipt_url}
+                                                alt="Exportación"
+                                            />
+                                        )}
+                                        {order.purchase_receipt_url && (
+                                            <ImageDialog
+                                                src={order.purchase_receipt_url}
+                                                alt="Compra"
+                                            />
+                                        )}
+                                    </div>
                                 </TableCell>
                                 <TableCell>
                                     {order.Imei.length} IMEI{order.Imei.length !== 1 ? 's' : ''}
