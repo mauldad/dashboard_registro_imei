@@ -1,6 +1,7 @@
 import { IOrder } from "@/types/order";
 
 interface PersonalOrderData {
+  isBusiness: false;
   imeis: string[];
   brand: string;
   documentType: "RUT";
@@ -9,6 +10,7 @@ interface PersonalOrderData {
 }
 
 interface BusinessOrderData {
+  isBusiness: true;
   deviceType: string;
   brand: string;
   documentType: "RUT";
@@ -17,6 +19,7 @@ interface BusinessOrderData {
 
 export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
   const data: PersonalOrderData = {
+    isBusiness: false,
     imeis: order.Imei.map((imei) => imei.imei_number),
     brand: order.Imei[0]?.brand || "",
     documentType: "RUT",
@@ -30,6 +33,7 @@ export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
 
 export const copyBusinessOrder = async (order: IOrder): Promise<void> => {
   const data: BusinessOrderData = {
+    isBusiness: true,
     deviceType: order.Imei[0]?.type || "",
     brand: order.Imei[0]?.brand || "",
     documentType: "RUT",
@@ -52,6 +56,8 @@ export const exportImeisToCSV = (imeis: IOrder["Imei"]): string => {
     .join("\n");
 
   const header = "IMEI,Marca,Modelo,Tipo,Fecha\n";
-  const blob = new Blob([header + csvContent], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([header + csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
   return URL.createObjectURL(blob);
 };
