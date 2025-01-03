@@ -8,14 +8,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  Ban,
   Building2,
   Calendar,
+  Check,
   CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Clipboard,
+  ClipboardCopy,
   Clock,
   CreditCard,
   DollarSign,
@@ -33,10 +37,23 @@ import { exportImeisToCSV } from "../utils/export";
 import EditOrderModal from "./EditOrderModal";
 import toast from "react-hot-toast";
 import useAuthStore from "../store/auth";
+import RejectOrderModal from "./RejectOrderModal";
 
 const columnHelper = createColumnHelper<IOrder>();
 
-const createColumns = (handleEdit: (order: IOrder) => void) => [
+interface CreateColumnsProps {
+  handleEdit: (order: IOrder) => void;
+  handleReject: (order: IOrder) => void;
+  handleCopy: (order: IOrder) => Promise<void>;
+  copiedOrderId: number | null;
+}
+
+const createColumns = ({
+  handleEdit,
+  handleReject,
+  handleCopy,
+  copiedOrderId,
+}: CreateColumnsProps) => [
   columnHelper.accessor("order_number", {
     header: "Orden",
     cell: (info) => (
@@ -402,6 +419,27 @@ const createColumns = (handleEdit: (order: IOrder) => void) => [
           >
             <Pencil className="w-4 h-4" />
           </button>
+          <button
+            onClick={async () => await handleCopy(info.row.original)}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Copiar registro"
+          >
+            {copiedOrderId === info.row.original.id ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Clipboard className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            onClick={() => {
+              handleReject(info.row.original);
+            }}
+            className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:text-red-300"
+            title="Rechazar registro"
+            disabled={info.row.original.paid === "rejected"}
+          >
+            <Ban className="w-4 h-4" />
+          </button>
         </div>
       );
     },
@@ -427,8 +465,12 @@ const ClientsTable = ({
   clients,
   searchQuery = undefined,
 }: ClientsTableProps) => {
+  const [copiedOrderId, setCopiedOrderId] = useState<number | null>(null);
   const [editOrder, setEditOrder] = useState<IOrder | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [rejectOrder, setRejectOrder] = useState<IOrder | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+
   const filteredData = React.useMemo(() => {
     let result = clients;
 
@@ -497,16 +539,62 @@ const ClientsTable = ({
     clients,
   ]);
 
-  const handleEdit = (order: IOrder) => {
-    setEditOrder(order);
-    setShowEditModal(true);
-  };
-
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const channel = getChannelToken();
 
   const columns = useMemo(() => {
-    const allColumns = createColumns(handleEdit);
+    const handleEdit = (order: IOrder) => {
+      setEditOrder(order);
+      setShowEditModal(true);
+    };
+    const handleReject = (order: IOrder) => {
+      setRejectOrder(order);
+      setShowRejectModal(true);
+    };
+
+    const handleCopyPersonalOrder = async (order: IOrder) => {
+      const data = {
+        imeis: order.Imei.map((imei) => imei.imei_number),
+        brand: order.Imei[0].brand,
+        documentType: "RUT",
+        documentNumber: order.Account?.rut,
+        fullName: `${order.Account?.Personal?.first_name} ${order.Account?.Personal?.last_name}`,
+      };
+      await navigator.clipboard.writeText(JSON.stringify(data));
+    };
+    const handleCopyBusinessOrder = async (order: IOrder) => {
+      const data = {
+        deviceType: order.Imei[0].type,
+        brand: order.Imei[0].brand,
+        documentType: "RUT",
+        documentNumber: order.Account?.rut,
+      };
+      await navigator.clipboard.writeText(JSON.stringify(data));
+
+      const imeis = order.Imei;
+      const csvLink = exportImeisToCSV(imeis);
+      window.location.href = csvLink;
+    };
+    const handleCopy = async (order: IOrder) => {
+      setCopiedOrderId(null);
+
+      if (order.Account?.is_business) {
+        await handleCopyBusinessOrder(order);
+      } else {
+        await handleCopyPersonalOrder(order);
+      }
+
+      setCopiedOrderId(order.id);
+      toast.success("Datos copiados al portapapeles.");
+      setTimeout(() => setCopiedOrderId(null), 2000);
+    };
+
+    const allColumns = createColumns({
+      handleEdit,
+      handleReject,
+      handleCopy,
+      copiedOrderId,
+    });
 
     if (channel !== "base") {
       return allColumns.filter(
@@ -518,7 +606,7 @@ const ClientsTable = ({
     }
 
     return allColumns;
-  }, [handleEdit, channel]);
+  }, [channel, copiedOrderId]);
 
   const table = useReactTable({
     data: filteredData,
@@ -539,6 +627,12 @@ const ClientsTable = ({
         <EditOrderModal
           order={editOrder as IOrder}
           onClose={() => setShowEditModal(false)}
+        />
+      )}
+      {showRejectModal && (
+        <RejectOrderModal
+          order={rejectOrder as IOrder}
+          onClose={() => setShowRejectModal(false)}
         />
       )}
       <div className="overflow-x-auto">

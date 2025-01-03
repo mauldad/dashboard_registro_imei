@@ -1,56 +1,142 @@
+import { throws } from "assert";
 import { IOrder } from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
 
-export async function getClients(
-  channel: string,
-): Promise<IOrder[] | undefined> {
-  const query = supabase
-    .from("Order")
-    .select(
-      `
-      id,
-      order_number,
-      total_paid,
-      paid,
-      imei_excel_url,
-      created_at,
-      has_registration,
-      has_antivirus,
-      has_insurance,
-      registered,
-      purchase_receipt_url,
-      import_receipt_url,
-      registrant_name,
-      email,
-      phone_number,
-      channel,
-      purchase_number,
-      Imei (imei_number, brand, model, imei_image, type),
-      Account (
+export interface ClientFilters {
+  month?: string;
+  channel?: string;
+  type?: string;
+  payment?: string;
+  status?: string;
+}
+
+export interface GetClientsParams {
+  channel: string;
+  query?: string;
+  filters?: ClientFilters;
+  page?: number;
+  limit?: number;
+}
+
+export async function getClients({
+  channel,
+  query,
+  filters,
+  page = 1,
+  limit = 10,
+}: GetClientsParams): Promise<
+  | {
+      data: IOrder[];
+      count: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }
+  | undefined
+> {
+  try {
+    const queryBuilder = supabase
+      .from("Order")
+      .select(
+        `
         id,
-        rut,
-        is_business,
-        Personal (first_name, last_name, nationality, id_card_url),
-        Business (business_name)
+        order_number,
+        total_paid,
+        paid,
+        imei_excel_url,
+        created_at,
+        has_registration,
+        has_antivirus,
+        has_insurance,
+        registered,
+        purchase_receipt_url,
+        import_receipt_url,
+        registrant_name,
+        email,
+        phone_number,
+        channel,
+        purchase_number,
+        Imei (
+          imei_number,
+          brand,
+          model,
+          imei_image,
+          type
+        ),
+        Account (
+          id,
+          rut,
+          is_business,
+          Personal (
+            first_name,
+            last_name,
+            nationality,
+            id_card_url
+          ),
+          Business (
+            business_name
+          )
+        )
+      `,
+        { count: "exact" },
       )
-    `,
-    )
-    .not("Account", "is", null)
-    .order("created_at", { ascending: false });
+      .not("Account", "is", null)
+      .order("created_at", { ascending: false });
 
-  // Agrega el filtro por canal si no es "base"
-  if (channel !== "base") {
-    query.eq("channel", channel);
+    // Apply base channel filter
+    if (channel !== "base") {
+      queryBuilder.eq("channel", channel);
+    }
+
+    // Apply search query if provided
+    if (query) {
+      queryBuilder.or(
+        `Account.rut.ilike.%${query}%,Account.Personal.first_name.ilike.%${query}%,Account.Personal.last_name.ilike.%${query}%,Account.Business.business_name.ilike.%${query}%,Imei.imei_number.ilike.%${query}%`,
+      );
+    }
+
+    // Apply filters if provided
+    if (filters) {
+      if (filters.month) {
+        queryBuilder.ilike("created_at", `${filters.month}%`);
+      }
+      if (filters.channel && channel === "base") {
+        queryBuilder.eq("channel", filters.channel);
+      }
+      if (filters.type) {
+        queryBuilder.eq("Account.is_business", filters.type === "business");
+      }
+      if (filters.payment) {
+        queryBuilder.eq("paid", filters.payment);
+      }
+      if (filters.status) {
+        queryBuilder.eq("registered", filters.status === "registered");
+      }
+    }
+
+    // Apply pagination
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    queryBuilder.range(from, to);
+
+    const { data, error, count } = await queryBuilder;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return {
+      data,
+      count,
+      page,
+      limit,
+      totalPages: count ? Math.ceil(count / limit) : 0,
+    };
+  } catch (error) {
+    console.error("Get Clients Error:", error);
+    throw new Error("Get clients failed");
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data;
 }
 
 export async function sendEmailUser(
@@ -160,7 +246,7 @@ export async function updatePersonalUser(formData: IOrder, orderId: number) {
     p_imeis,
   }))(transformedData);
   const { data, error } = await supabase.rpc("update_personal_user", body);
-  if (error) return;
+  if (error) throw new Error(error.message);
   return data;
 }
 
@@ -185,11 +271,11 @@ export async function updateBusinessUser(formData: IOrder, orderId: number) {
     p_imeis,
   }))(transformedData);
   const { data, error } = await supabase.rpc("update_business_user", body);
-  if (error) return;
+  if (error) throw new Error(error.message);
   return data; // Account id and order id
 }
 
-export async function uploadPersonalUserIdCard(file: File) {
+export const uploadPersonalUserIdCard = async (file: File): Promise<string> => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -200,15 +286,17 @@ export async function uploadPersonalUserIdCard(file: File) {
       `personal/id_cards/${uuidFile}-${timestamp}-id_card${extension}`,
       file,
     );
-  if (error) return;
+  if (error) return "";
 
   const { data: publicUrlData } = supabase.storage
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
 
-export async function uploadPersonalPurchaseReceipt(file: File) {
+export const uploadPersonalPurchaseReceipt = async (
+  file: File,
+): Promise<string> => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -219,15 +307,17 @@ export async function uploadPersonalPurchaseReceipt(file: File) {
       `personal/receipts/${uuidFile}-${timestamp}-purchase_receipt${extension}`,
       file,
     );
-  if (error) return;
+  if (error) return "";
 
   const { data: publicUrlData } = supabase.storage
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
 
-export async function uploadBusinessImportReceipt(file: File) {
+export const uploadBusinessImportReceipt = async (
+  file: File,
+): Promise<string> => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -238,15 +328,20 @@ export async function uploadBusinessImportReceipt(file: File) {
       `business/receipts/${uuidFile}-${timestamp}-import_receipt${extension}`,
       file,
     );
-  if (error) return;
+  if (error) return "";
 
   const { data: publicUrlData } = supabase.storage
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};
 
-export async function uploadExcelImeisFile(file: File) {
+export const uploadImeiImage = async (file: File): Promise<string> => {
+  if (file) return "";
+  return "example_url";
+};
+
+export const uploadExcelImeisFile = async (file: File) => {
   const uuidFile = uuidv4().slice(0, 8).toUpperCase();
   const timestamp = new Date().getTime();
   const dotIndex = file.name.lastIndexOf(".");
@@ -260,4 +355,4 @@ export async function uploadExcelImeisFile(file: File) {
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
-}
+};

@@ -7,20 +7,14 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
-import ClientsTable from "../components/ClientsTable";
+import ClientsTable from "@/components/clients/clients-table";
 import AnalyticsChart from "../components/AnalyticsChart";
 import { exportToExcel } from "../utils/export";
-import { mockClients } from "../data/mockClients";
 import useClientStore from "../store/clients";
-import ClientsTableSkeleton from "../components/skeletons/ClientTableSkeleton";
+import ClientsTableSkeleton from "../components/skeletons/client-table-skeleton";
 import useAuthStore from "../store/auth";
 
 const Dashboard = () => {
-  const [filter, setFilter] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all");
-  const [registrationFilter, setRegistrationFilter] = useState("all");
-  const [channelFilter, setChannelFilter] = useState("all");
-  const [monthFilter, setMonthFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
@@ -31,7 +25,7 @@ const Dashboard = () => {
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients(channel);
+      await fetchClients({ channel, query: "", filters: {} });
       setLoading(false);
     };
     getClients();
@@ -129,11 +123,10 @@ const Dashboard = () => {
                   <div
                     className="bg-purple-500 h-2.5 rounded-full"
                     style={{
-                      width: `${
-                        (clients.filter((c) => c.Account?.is_business).length /
+                      width: `${(clients.filter((c) => c.Account?.is_business).length /
                           clients.length) *
                         100
-                      }%`,
+                        }%`,
                     }}
                   ></div>
                 </div>
@@ -144,11 +137,10 @@ const Dashboard = () => {
                   <div
                     className="bg-blue-500 h-2.5 rounded-full"
                     style={{
-                      width: `${
-                        (clients.filter((c) => !c.Account?.is_business).length /
+                      width: `${(clients.filter((c) => !c.Account?.is_business).length /
                           clients.length) *
                         100
-                      }%`,
+                        }%`,
                     }}
                   ></div>
                 </div>
@@ -162,68 +154,17 @@ const Dashboard = () => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold">Listado de Clientes</h2>
-            {loading ? (
-              <div className="flex gap-3">
-                <div className="px-3 py-2 border rounded-lg bg-gray-200 w-32 h-10 animate-pulse"></div>
-                <div className="px-3 py-2 border rounded-lg bg-gray-200 w-48 h-10 animate-pulse"></div>
-                <div className="px-3 py-2 border rounded-lg bg-gray-200 w-48 h-10 animate-pulse"></div>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                {channel === "base" && (
-                  <>
-                    <select
-                      value={channelFilter}
-                      onChange={(e) => setChannelFilter(e.target.value)}
-                      className="px-3 py-2 border rounded-lg text-sm"
-                    >
-                      <option value="all">Todos los Canales</option>
-                      <option value="base">Base</option>
-                      <option value="falabella">Falabella</option>
-                      <option value="walmart">Walmart</option>
-                    </select>
-                    <select
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                      className="px-3 py-2 border rounded-lg text-sm"
-                    >
-                      <option value="all">Todos</option>
-                      <option value="business">Empresas</option>
-                      <option value="personal">Personas</option>
-                    </select>
-                    <select
-                      value={paymentFilter}
-                      onChange={(e) => setPaymentFilter(e.target.value)}
-                      className="px-3 py-2 border rounded-lg text-sm"
-                    >
-                      <option value="all">Todos los Pagos</option>
-                      <option value="approved">Pagados</option>
-                      <option value="pending">Pendientes</option>
-                    </select>
-                  </>
-                )}
-                <select
-                  value={registrationFilter}
-                  onChange={(e) => setRegistrationFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="all">Todos los Estados</option>
-                  <option value="registered">Registrados</option>
-                  <option value="waiting">En Espera</option>
-                </select>
-              </div>
-            )}
           </div>
           {loading ? (
             <ClientsTableSkeleton />
           ) : (
             <ClientsTable
-              filter={filter}
-              paymentFilter={paymentFilter}
-              registrationFilter={registrationFilter}
-              monthFilter={monthFilter}
-              channelFilter={channelFilter}
-              clients={clients}
+              orders={clients}
+              totalClients={clients.length}
+              currentPage={1}
+              totalPages={1}
+              onPageChange={() => { }}
+              onStatusChange={() => { }}
             />
           )}
         </div>
