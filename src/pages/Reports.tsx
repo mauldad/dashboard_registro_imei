@@ -25,13 +25,15 @@ const Reports = () => {
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const channel = getChannelToken();
 
-  const clients = useClientStore((state) => state.clients);
-  const fetchClients = useClientStore((state) => state.fetchClients);
+  const clients = useClientStore((state) => state.analitycsClients);
+  const fetchAnalitycsClients = useClientStore(
+    (state) => state.fetchAnalitycsClients,
+  );
 
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients(channel);
+      await fetchAnalitycsClients(channel);
       setLoading(false);
     };
     getClients();

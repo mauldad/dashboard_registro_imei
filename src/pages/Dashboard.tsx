@@ -21,10 +21,12 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
 
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
-  const channel = getChannelToken();
+  const authChannel = getChannelToken();
   const {
     clients,
+    analitycsClients,
     fetchClients,
+    fetchAnalitycsClients,
     updateRegisterStatus,
     currentPage,
     totalPages,
@@ -35,26 +37,28 @@ const Dashboard = () => {
     const getClients = async () => {
       setLoading(true);
       await fetchClients({
-        channel,
+        channel: authChannel,
         query: searchParams.get("query") || undefined,
         filters: {
           month: searchParams.get("month") || undefined,
-          channel: searchParams.get("channel") || undefined,
+          channel:
+            authChannel === "base" ? searchParams.get("channel") : authChannel,
           type: searchParams.get("type") || undefined,
           payment: searchParams.get("payment") || undefined,
           status: searchParams.get("status") || undefined,
         },
       });
+      await fetchAnalitycsClients(authChannel);
       setLoading(false);
     };
     getClients();
   }, [searchParams]);
 
   const stats = useMemo(() => {
-    const totalClients = clients.length;
-    const empresas = clients.filter((c) => c.Account?.is_business).length;
-    const validados = clients.filter((c) => c.registered).length;
-    const pendientes = clients.filter((c) => !c.registered).length;
+    const totalClients = analitycsClients.length;
+    const empresas = analitycsClients.filter((c) => c.is_business).length;
+    const validados = analitycsClients.filter((c) => c.registered).length;
+    const pendientes = analitycsClients.filter((c) => !c.registered).length;
 
     const stats = [
       {
@@ -83,11 +87,11 @@ const Dashboard = () => {
       },
     ];
 
-    if (channel !== "base") {
+    if (authChannel !== "base") {
       return stats.filter((s) => s.title !== "Empresas");
     }
     return stats;
-  }, [clients]);
+  }, [analitycsClients]);
 
   const onStatusChange = async (id: number) => {
     await toast.promise(updateRegisterStatus(id), {
@@ -101,11 +105,12 @@ const Dashboard = () => {
   const onPageSizeChange = async (size: number) => {
     setLoading(true);
     await fetchClients({
-      channel,
+      channel: authChannel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,
-        channel: searchParams.get("channel") || undefined,
+        channel:
+          authChannel === "base" ? searchParams.get("channel") : authChannel,
         type: searchParams.get("type") || undefined,
         payment: searchParams.get("payment") || undefined,
         status: searchParams.get("status") || undefined,
@@ -118,11 +123,12 @@ const Dashboard = () => {
   const onPageChange = async (page: number) => {
     setLoading(true);
     await fetchClients({
-      channel,
+      channel: authChannel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,
-        channel: searchParams.get("channel") || undefined,
+        channel:
+          authChannel === "base" ? searchParams.get("channel") : authChannel,
         type: searchParams.get("type") || undefined,
         payment: searchParams.get("payment") || undefined,
         status: searchParams.get("status") || undefined,
@@ -138,7 +144,9 @@ const Dashboard = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
-          onClick={() => exportToExcel(clients, "dashboard-export", channel)}
+          onClick={() =>
+            exportToExcel(clients, "dashboard-export", authChannel)
+          }
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
         >
@@ -174,7 +182,7 @@ const Dashboard = () => {
           <AnalyticsChart />
         </div>
 
-        {channel === "base" && (
+        {authChannel === "base" && (
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">
               Distribución de Clientes
@@ -187,8 +195,8 @@ const Dashboard = () => {
                     className="bg-purple-500 h-2.5 rounded-full"
                     style={{
                       width: `${
-                        (clients.filter((c) => c.Account?.is_business).length /
-                          clients.length) *
+                        (analitycsClients.filter((c) => c.is_business).length /
+                          analitycsClients.length) *
                         100
                       }%`,
                     }}
@@ -202,8 +210,8 @@ const Dashboard = () => {
                     className="bg-blue-500 h-2.5 rounded-full"
                     style={{
                       width: `${
-                        (clients.filter((c) => !c.Account?.is_business).length /
-                          clients.length) *
+                        (analitycsClients.filter((c) => !c.is_business).length /
+                          analitycsClients.length) *
                         100
                       }%`,
                     }}

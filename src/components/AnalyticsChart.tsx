@@ -39,7 +39,7 @@ const options = {
 
 const AnalyticsChart = () => {
   // Group data by month
-  const data = useClientStore((state) => state.clients);
+  const data = useClientStore((state) => state.analitycsClients);
   const monthlyData = data.reduce(
     (acc, client) => {
       const month = format(parseISO(client.created_at), "MMMM yyyy", {
