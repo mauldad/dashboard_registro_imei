@@ -7,6 +7,8 @@ interface PersonalOrderData {
   documentType: "RUT";
   documentNumber: string | undefined;
   fullName: string;
+  technicalDetails: string;
+  description: string;
 }
 
 interface BusinessOrderData {
@@ -15,18 +17,21 @@ interface BusinessOrderData {
   brand: string;
   documentType: "RUT";
   documentNumber: string | undefined;
+  description: string;
 }
 
 export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
   const data: PersonalOrderData = {
     isBusiness: false,
     imeis: order.Imei.map((imei) => imei.imei_number),
-    brand: order.Imei[0]?.brand || "",
+    brand: "OTRAS MARCAS",
     documentType: "RUT",
     documentNumber: order.Account?.rut,
     fullName: `${order.Account?.Personal?.first_name || ""} ${
       order.Account?.Personal?.last_name || ""
     }`.trim(),
+    technicalDetails: order.order_number,
+    description: "Uso personal",
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
@@ -34,10 +39,11 @@ export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
 export const copyBusinessOrder = async (order: IOrder): Promise<void> => {
   const data: BusinessOrderData = {
     isBusiness: true,
-    deviceType: order.Imei[0]?.type || "",
-    brand: order.Imei[0]?.brand || "",
+    deviceType: "OTROS DISPOSITIVOS",
+    brand: "OTRAS MARCAS",
     documentType: "RUT",
     documentNumber: order.Account?.rut,
+    description: `${order.Account?.rut}, ${order.Account?.Business?.business_name}, ${order.registrant_name}, ${order.email}`,
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
