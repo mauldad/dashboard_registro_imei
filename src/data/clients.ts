@@ -139,6 +139,51 @@ export async function getClients({
   }
 }
 
+export async function getClientsStats(channel: string): Promise<
+  {
+    is_business: boolean;
+    registered: boolean;
+    total_paid: number;
+    created_at: string;
+  }[]
+> {
+  try {
+    const queryBuilder = supabase
+      .from("Order")
+      .select(
+        `
+        Account (is_business),
+        registered,
+        total_paid,
+        created_at
+      `,
+      )
+      .not("Account", "is", null);
+
+    if (channel !== "base") {
+      queryBuilder.eq("channel", channel);
+    }
+
+    const { data, error } = await queryBuilder;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const processedData = data.map((item) => ({
+      is_business: item.Account.is_business,
+      registered: item.registered,
+      total_paid: item.total_paid,
+      created_at: item.created_at,
+    }));
+
+    return processedData;
+  } catch (error) {
+    console.error("Get All Clients Error:", error);
+    throw new Error("Get all clients failed");
+  }
+}
+
 export async function sendEmailUser(
   toEmail: string,
   subject: string,

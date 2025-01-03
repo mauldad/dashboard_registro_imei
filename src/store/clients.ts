@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getClients, sendEmailUser } from "../data/clients";
+import { getClients, getClientsStats, sendEmailUser } from "../data/clients";
 import { IOrder, PaymentStatus } from "../types/client";
 import supabase from "../data/supabase";
 import {
@@ -11,6 +11,12 @@ import {
 
 interface ClientState {
   clients: IOrder[];
+  analitycsClients: {
+    is_business: boolean;
+    registered: boolean;
+    total_paid: number;
+    created_at: string;
+  }[];
   totalClients: number;
   currentPage: number;
   totalPages: number;
@@ -20,6 +26,7 @@ interface ClientState {
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   fetchClients: (params: {
+    channel?: string;
     query?: string;
     filters?: {
       month?: string;
@@ -30,6 +37,7 @@ interface ClientState {
     page?: number;
     limit?: number;
   }) => Promise<void>;
+  fetchAnalitycsClients: (channel: string) => Promise<void>;
   updateRegisterStatus: (id: number) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;
   rejectClient: (rejectedClient: IOrder, reason: string) => Promise<void>;
@@ -38,6 +46,7 @@ interface ClientState {
 
 const useClientStore = create<ClientState>((set, get) => ({
   clients: [],
+  analitycsClients: [],
   totalClients: 0,
   currentPage: 1,
   totalPages: 1,
@@ -50,7 +59,7 @@ const useClientStore = create<ClientState>((set, get) => ({
     try {
       set({ loading: true, error: null });
       const result = await getClients({
-        channel: "base",
+        channel: params.channel || "base",
         ...params,
         limit: params.limit || 10,
         page: params.page || 1,
@@ -63,6 +72,22 @@ const useClientStore = create<ClientState>((set, get) => ({
           currentPage: result.page,
           totalPages: result.totalPages,
           pageSize: result.limit,
+        });
+      }
+    } catch (error) {
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  fetchAnalitycsClients: async (channel) => {
+    try {
+      set({ loading: true, error: null });
+      const result = await getClientsStats(channel || "base");
+
+      if (result) {
+        set({
+          analitycsClients: result,
         });
       }
     } catch (error) {
