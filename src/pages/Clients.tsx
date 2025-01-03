@@ -18,11 +18,14 @@ const Clients = () => {
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const channel = getChannelToken();
 
-  const clients = useClientStore((state) => state.clients);
-  const fetchClients = useClientStore((state) => state.fetchClients);
-  const updateRegisterStatus = useClientStore(
-    (state) => state.updateRegisterStatus,
-  );
+  const {
+    clients,
+    fetchClients,
+    updateRegisterStatus,
+    currentPage,
+    totalPages,
+    pageSize,
+  } = useClientStore((state) => state);
 
   useEffect(() => {
     const getClients = async () => {
@@ -51,6 +54,41 @@ const Clients = () => {
       error:
         "Fallo al actualizar el registro. Porfavor intenta de nuevo más tarde.",
     });
+  };
+
+  const onPageSizeChange = async (size: number) => {
+    setLoading(true);
+    await fetchClients({
+      channel,
+      query: searchParams.get("query") || undefined,
+      filters: {
+        month: searchParams.get("month") || undefined,
+        channel: searchParams.get("channel") || undefined,
+        type: searchParams.get("type") || undefined,
+        payment: searchParams.get("payment") || undefined,
+        status: searchParams.get("status") || undefined,
+      },
+      limit: size,
+    });
+    setLoading(false);
+  };
+
+  const onPageChange = async (page: number) => {
+    setLoading(true);
+    await fetchClients({
+      channel,
+      query: searchParams.get("query") || undefined,
+      filters: {
+        month: searchParams.get("month") || undefined,
+        channel: searchParams.get("channel") || undefined,
+        type: searchParams.get("type") || undefined,
+        payment: searchParams.get("payment") || undefined,
+        status: searchParams.get("status") || undefined,
+      },
+      limit: pageSize,
+      page,
+    });
+    setLoading(false);
   };
 
   return (
@@ -83,9 +121,10 @@ const Clients = () => {
           <ClientsTable
             orders={clients}
             totalClients={clients.length}
-            currentPage={1}
-            totalPages={1}
-            onPageChange={() => {}}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
             onStatusChange={onStatusChange}
           />
         )}

@@ -13,23 +13,42 @@ import { exportToExcel } from "../utils/export";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/client-table-skeleton";
 import useAuthStore from "../store/auth";
+import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
 
   const getChannelToken = useAuthStore((state) => state.getChannelToken);
   const channel = getChannelToken();
-  const clients = useClientStore((state) => state.clients);
-  const fetchClients = useClientStore((state) => state.fetchClients);
+  const {
+    clients,
+    fetchClients,
+    updateRegisterStatus,
+    currentPage,
+    totalPages,
+    pageSize,
+  } = useClientStore((state) => state);
 
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchClients({ channel, query: "", filters: {} });
+      await fetchClients({
+        channel,
+        query: searchParams.get("query") || undefined,
+        filters: {
+          month: searchParams.get("month") || undefined,
+          channel: searchParams.get("channel") || undefined,
+          type: searchParams.get("type") || undefined,
+          payment: searchParams.get("payment") || undefined,
+          status: searchParams.get("status") || undefined,
+        },
+      });
       setLoading(false);
     };
     getClients();
-  }, [clients.length]);
+  }, [searchParams]);
 
   const stats = useMemo(() => {
     const totalClients = clients.length;
@@ -70,12 +89,56 @@ const Dashboard = () => {
     return stats;
   }, [clients]);
 
+  const onStatusChange = async (id: number) => {
+    await toast.promise(updateRegisterStatus(id), {
+      loading: "Actualizando registro...",
+      success: "Registro actualizado!",
+      error:
+        "Fallo al actualizar el registro. Porfavor intenta de nuevo más tarde.",
+    });
+  };
+
+  const onPageSizeChange = async (size: number) => {
+    setLoading(true);
+    await fetchClients({
+      channel,
+      query: searchParams.get("query") || undefined,
+      filters: {
+        month: searchParams.get("month") || undefined,
+        channel: searchParams.get("channel") || undefined,
+        type: searchParams.get("type") || undefined,
+        payment: searchParams.get("payment") || undefined,
+        status: searchParams.get("status") || undefined,
+      },
+      limit: size,
+    });
+    setLoading(false);
+  };
+
+  const onPageChange = async (page: number) => {
+    setLoading(true);
+    await fetchClients({
+      channel,
+      query: searchParams.get("query") || undefined,
+      filters: {
+        month: searchParams.get("month") || undefined,
+        channel: searchParams.get("channel") || undefined,
+        type: searchParams.get("type") || undefined,
+        payment: searchParams.get("payment") || undefined,
+        status: searchParams.get("status") || undefined,
+      },
+      limit: pageSize,
+      page,
+    });
+    setLoading(false);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
-          onClick={() => exportToExcel(clients, "dashboard-export")}
+          onClick={() => exportToExcel(clients, "dashboard-export", channel)}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
         >
@@ -123,10 +186,11 @@ const Dashboard = () => {
                   <div
                     className="bg-purple-500 h-2.5 rounded-full"
                     style={{
-                      width: `${(clients.filter((c) => c.Account?.is_business).length /
+                      width: `${
+                        (clients.filter((c) => c.Account?.is_business).length /
                           clients.length) *
                         100
-                        }%`,
+                      }%`,
                     }}
                   ></div>
                 </div>
@@ -137,10 +201,11 @@ const Dashboard = () => {
                   <div
                     className="bg-blue-500 h-2.5 rounded-full"
                     style={{
-                      width: `${(clients.filter((c) => !c.Account?.is_business).length /
+                      width: `${
+                        (clients.filter((c) => !c.Account?.is_business).length /
                           clients.length) *
                         100
-                        }%`,
+                      }%`,
                     }}
                   ></div>
                 </div>
@@ -161,10 +226,11 @@ const Dashboard = () => {
             <ClientsTable
               orders={clients}
               totalClients={clients.length}
-              currentPage={1}
-              totalPages={1}
-              onPageChange={() => { }}
-              onStatusChange={() => { }}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              onPageSizeChange={onPageSizeChange}
+              onStatusChange={onStatusChange}
             />
           )}
         </div>
