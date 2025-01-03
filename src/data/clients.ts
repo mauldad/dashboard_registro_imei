@@ -338,7 +338,7 @@ export const uploadBusinessImportReceipt = async (
 
 export const uploadImeiImage = async (file: File): Promise<string> => {
   if (file) return "";
-  return "";
+  return "example_url";
 };
 
 export const uploadExcelImeisFile = async (file: File) => {

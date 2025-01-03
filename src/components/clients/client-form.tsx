@@ -89,7 +89,7 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
             is_business: order?.Account?.is_business || false,
             rut: order?.Account?.rut || "",
             email: order?.email || "",
-            phone_number: order?.phone_number || null,
+            phone_number: order?.phone_number || "",
 
             // Personal Information
             first_name: order?.Account?.Personal?.first_name || "",
@@ -116,7 +116,6 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
             purchase_number: order?.purchase_number || "",
 
             // Additional Information
-            registrant_name: order?.registrant_name || null,
             channel: order?.channel || "base",
         },
     });
@@ -130,14 +129,32 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
         setError("");
         const submitForm = async () => {
             try {
-                // Create and upload Excel file from IMEIs
-                const excelFile = createExcelFromImeis(values.imeis.map(imei => ({
-                    ...imei,
-                    imei_image: imei.imei_image || ''
-                })));
-                const xmlUrl = await handleFileUpload(excelFile, uploadExcelImeisFile);
-
                 if (!order) return;
+
+                let xmlUrl: string | undefined = order.imei_excel_url;
+
+                // Check if IMEIs have changed
+                const haveImeisChanged = values.imeis.some((imei, index) => {
+                    const originalImei = order.Imei[index];
+                    return !originalImei ||
+                        imei.imei_number !== originalImei.imei_number ||
+                        imei.brand !== originalImei.brand ||
+                        imei.model !== originalImei.model ||
+                        imei.type !== originalImei.type;
+                }) || values.imeis.length !== order.Imei.length;
+
+                // Only create and upload new Excel if IMEIs have changed
+                if (haveImeisChanged) {
+                    // Create and upload Excel file from IMEIs
+                    const excelFile = createExcelFromImeis(values.imeis.map(imei => ({
+                        imei_number: imei.imei_number,
+                        brand: imei.brand,
+                        model: imei.model,
+                        type: imei.type || '',
+                        imei_image: imei.imei_image || ''
+                    })));
+                    xmlUrl = await handleFileUpload(excelFile, uploadExcelImeisFile);
+                }
 
                 // Create the order object
                 const updatedOrder: IOrder = {
@@ -157,21 +174,26 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                         } : null,
                     },
                     email: values.email,
-                    phone_number: values.phone_number || null,
+                    phone_number: values.phone_number || "",
                     total_paid: values.total_paid,
                     paid: values.paid,
                     purchase_number: values.purchase_number || "",
                     has_registration: values.has_registration,
                     has_antivirus: values.has_antivirus,
                     has_insurance: values.has_insurance,
-                    purchase_receipt_url: values.purchase_receipt_url || null,
-                    import_receipt_url: values.is_business ? values.import_receipt_url || null : null,
-                    imei_excel_url: xmlUrl || order.imei_excel_url,
+                    purchase_receipt_url: values.purchase_receipt_url || "",
+                    import_receipt_url: values.is_business ? values.import_receipt_url || "" : "",
+                    imei_excel_url: xmlUrl || order.imei_excel_url || "",
                     Imei: values.imeis.map(imei => ({
-                        ...imei,
-                        imei_image: imei.imei_image || "",
+                        imei_number: imei.imei_number,
+                        brand: imei.brand,
+                        model: imei.model,
+                        type: imei.type || '',
+                        imei_image: imei.imei_image || ""
                     })),
                 };
+
+                console.log(updatedOrder);
 
                 // Update the client in the database
                 if (values.is_business) {
@@ -403,7 +425,7 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                                                 <FormItem>
                                                     <FormLabel className="text-xs text-muted-foreground">Teléfono</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="+56 9 1234 5678" {...field} value={field.value || ''} />
+                                                        <Input placeholder="+56 9 1234 5678" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -434,95 +456,107 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                                         <TableHead className="text-xs text-muted-foreground">Número IMEI</TableHead>
                                         <TableHead className="text-xs text-muted-foreground">Marca</TableHead>
                                         <TableHead className="text-xs text-muted-foreground">Modelo</TableHead>
-                                        <TableHead className="text-xs text-muted-foreground">Tipo</TableHead>
+                                        {form.getValues("is_business") && (
+                                            <TableHead className="text-xs text-muted-foreground">Tipo</TableHead>
+                                        )}
                                         <TableHead className="text-xs text-muted-foreground">Imagen</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {fields.map((field, index) => (
-                                        <TableRow key={field.id} className="border-0">
-                                            <TableCell>
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`imeis.${index}.imei_number`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`imeis.${index}.brand`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`imeis.${index}.model`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`imeis.${index}.type`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <Input {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            handleFileChange(e, uploadImeiImage, 'imeis');
-                                                        }
-                                                    }}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    disabled={fields.length === 1}
-                                                    onClick={() => remove(index)}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {fields.map((field, index) => {
+                                        return (
+                                            <TableRow key={index} className="border-0">
+                                                <TableCell>
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`imeis.${index}.imei_number`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`imeis.${index}.brand`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`imeis.${index}.model`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input {...field} />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </TableCell>
+                                                {form.getValues("is_business") && <TableCell>
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`imeis.${index}.type`}
+                                                        render={({ field: { onChange, ...field } }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input
+                                                                        {...field}
+                                                                        value={field.value || ""}
+                                                                        onChange={(e) => {
+                                                                            const value = e.target.value;
+                                                                            onChange(value || "");
+                                                                        }}
+                                                                        placeholder="Tipo"
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </TableCell>}
+                                                <TableCell>
+                                                    <Input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                handleFileChange(e, uploadImeiImage, 'imeis');
+                                                            }
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        disabled={fields.length === 1}
+                                                        onClick={() => remove(index)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })}
                                 </TableBody>
                             </Table>
                             <div>
@@ -530,13 +564,14 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
                                     type="button"
                                     variant="ghost"
                                     onClick={() => append({
-                                        imei_number: ' ',
-                                        brand: ' ',
-                                        model: ' ',
-                                        type: ' ',
-                                        imei_image: ' '
+                                        imei_number: '',
+                                        brand: '',
+                                        model: '',
+                                        type: null,
+                                        imei_image: null
                                     })}
                                     className="p-1 hover:bg-transparent gap-1"
+                                    disabled={!form.getValues("is_business") && fields.length >= 2}
                                 >
                                     <Plus className="h-4 w-4" />
                                     Agregar IMEI
