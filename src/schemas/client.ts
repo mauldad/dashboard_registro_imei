@@ -4,8 +4,8 @@ export const imei_schema = z.object({
     imei_number: z.string().min(1, "El número IMEI es requerido"),
     brand: z.string().min(1, "La marca es requerida"),
     model: z.string().min(1, "El modelo es requerido"),
-    type: z.string().min(1, "El tipo es requerido"),
-    imei_image: z.string().optional(),
+    type: z.string().nullable(),
+    imei_image: z.string().nullable(),
 });
 
 export const client_schema = z.object({
@@ -13,7 +13,7 @@ export const client_schema = z.object({
     is_business: z.boolean().default(false),
     rut: z.string().min(1, "El RUT es requerido"),
     email: z.string().email("Email inválido"),
-    phone_number: z.string().nullable(),
+    phone_number: z.string().optional(),
 
     // Personal Information (conditional)
     first_name: z.string().optional(),
@@ -40,7 +40,6 @@ export const client_schema = z.object({
     purchase_number: z.string().optional(),
 
     // Additional Information
-    registrant_name: z.string().nullable(),
     channel: z.string().default("base"),
 });
 

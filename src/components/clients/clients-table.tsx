@@ -244,7 +244,7 @@ const ClientsTable = ({
                                                 <Copy className="h-4 w-4" />
                                             )}
                                         </Button>
-                                        <ClientForm order={order} />
+                                        <ClientForm key={order.id} order={order} />
                                         <RejectForm order={order} />
                                         <span className="hidden" id={`details-trigger-${order.id}`}>
                                             <ClientDetails order={order} />
