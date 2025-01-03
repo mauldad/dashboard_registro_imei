@@ -9,6 +9,7 @@ import useAuthStore from "@/store/auth";
 import { ClientsSearch } from "@/components/clients/clients-search";
 import { ClientsFilters } from "@/components/clients/clients-filters";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 
 const Clients = () => {
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,9 @@ const Clients = () => {
 
   const clients = useClientStore((state) => state.clients);
   const fetchClients = useClientStore((state) => state.fetchClients);
+  const updateRegisterStatus = useClientStore(
+    (state) => state.updateRegisterStatus,
+  );
 
   useEffect(() => {
     const getClients = async () => {
@@ -32,13 +36,22 @@ const Clients = () => {
           type: searchParams.get("type") || undefined,
           payment: searchParams.get("payment") || undefined,
           status: searchParams.get("status") || undefined,
-        }
+        },
       });
       setLoading(false);
     };
     getClients();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  const onStatusChange = async (id: number) => {
+    await toast.promise(updateRegisterStatus(id), {
+      loading: "Actualizando registro...",
+      success: "Registro actualizado!",
+      error:
+        "Fallo al actualizar el registro. Porfavor intenta de nuevo más tarde.",
+    });
+  };
 
   return (
     <div className="h-full flex flex-col gap-6 p-6">
@@ -53,7 +66,8 @@ const Clients = () => {
           <Button
             variant="outline"
             onClick={() => exportToExcel(clients, "clientes-export", channel)}
-            disabled={loading}>
+            disabled={loading}
+          >
             <Download size={20} />
             Exportar Listado
           </Button>
@@ -71,8 +85,8 @@ const Clients = () => {
             totalClients={clients.length}
             currentPage={1}
             totalPages={1}
-            onPageChange={() => { }}
-            onStatusChange={() => { }}
+            onPageChange={() => {}}
+            onStatusChange={onStatusChange}
           />
         )}
       </div>

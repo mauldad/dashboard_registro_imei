@@ -76,6 +76,7 @@ export default function RejectForm({ order }: RejectFormProps) {
           variant="ghost"
           size="icon"
           className="h-7 w-7 p-1 text-destructive/70 hover:text-destructive hover:bg-transparent transition-colors"
+          disabled={order.paid === "rejected"}
         >
           <Ban className="h-4 w-4" />
         </Button>

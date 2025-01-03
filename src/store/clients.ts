@@ -30,11 +30,7 @@ interface ClientState {
     page?: number;
     limit?: number;
   }) => Promise<void>;
-  updatePaid: (
-    id: number,
-    isBusiness: boolean,
-    orderNumber: string,
-  ) => Promise<boolean>;
+  updateRegisterStatus: (id: number) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;
   rejectClient: (rejectedClient: IOrder, reason: string) => Promise<void>;
   deleteUser: (id: number, token: string) => Promise<void>;
@@ -57,16 +53,16 @@ const useClientStore = create<ClientState>((set, get) => ({
         channel: "base",
         ...params,
         limit: params.limit || 10,
-        page: params.page || 1
+        page: params.page || 1,
       });
-      
+
       if (result) {
         set({
           clients: result.data,
           totalClients: result.count,
           currentPage: result.page,
           totalPages: result.totalPages,
-          pageSize: result.limit
+          pageSize: result.limit,
         });
       }
     } catch (error) {
@@ -75,7 +71,7 @@ const useClientStore = create<ClientState>((set, get) => ({
       set({ loading: false });
     }
   },
-  updatePaid: async (id: number, isBusiness: boolean, orderNumber: string) => {
+  updateRegisterStatus: async (id: number) => {
     const { data, error } = await supabase.rpc("update_order_register", {
       p_order_id: id,
     });
@@ -89,21 +85,20 @@ const useClientStore = create<ClientState>((set, get) => ({
       return client;
     });
     const currentClient = get().clients.find((client) => client.id === id);
-
     const email = get().clients.find((client) => client.id === id)?.email;
 
     if (data) {
       await sendEmailUser(
         email as string,
-        `¡Tu registro se completó! Orden nº ${orderNumber}`,
-        isBusiness
+        `¡Tu registro se completó! Orden nº ${currentClient?.order_number}`,
+        currentClient?.Account?.is_business
           ? successRegisterBusiness(
-            currentClient?.Account?.Business?.business_name as string,
-          )
+              currentClient?.Account?.Business?.business_name as string,
+            )
           : successRegister(
-            currentClient?.Account?.Personal?.first_name as string,
-            currentClient?.Account?.Personal?.last_name as string,
-          ),
+              currentClient?.Account?.Personal?.first_name as string,
+              currentClient?.Account?.Personal?.last_name as string,
+            ),
       );
     }
     set({ clients: newClients });
@@ -148,14 +143,14 @@ const useClientStore = create<ClientState>((set, get) => ({
       `Registro rechazado, Orden nº ${rejectedClient.order_number}`,
       rejectedClient.Account?.is_business
         ? rejectedRegisterBusiness(
-          rejectedClient?.Account?.Business?.business_name as string,
-          reason,
-        )
+            rejectedClient?.Account?.Business?.business_name as string,
+            reason,
+          )
         : rejectedRegister(
-          rejectedClient?.Account?.Personal?.first_name as string,
-          rejectedClient?.Account?.Personal?.last_name as string,
-          reason,
-        ),
+            rejectedClient?.Account?.Personal?.first_name as string,
+            rejectedClient?.Account?.Personal?.last_name as string,
+            reason,
+          ),
     );
   },
   deleteUser: async (id: number, token: string) => {

@@ -47,7 +47,7 @@ interface ClientsTableProps {
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
-    onStatusChange: (orderId: string, status: string) => void;
+    onStatusChange: (orderId: number) => Promise<void>;
     onPageSizeChange?: (size: number) => void;
 }
 
@@ -160,7 +160,7 @@ const ClientsTable = ({
                                         {order.import_receipt_url && (
                                             <ImageDialog
                                                 src={order.import_receipt_url}
-                                                alt="Exportación"
+                                                alt="Importación"
                                             />
                                         )}
                                         {order.purchase_receipt_url && (
@@ -177,7 +177,8 @@ const ClientsTable = ({
                                 <TableCell>
                                     <Select
                                         defaultValue={order.registered ? "approved" : "pending"}
-                                        onValueChange={(value) => onStatusChange(order.id.toString(), value)}
+                                        onValueChange={() => onStatusChange(order.id)}
+                                        disabled={order.paid !== "approved"}
                                     >
                                         <SelectTrigger className="w-[130px]">
                                             <SelectValue />
