@@ -90,23 +90,44 @@ const ClientsTable = ({
     }
   };
 
-  const ImageDialog = ({ src, alt }: { src: string; alt: string }) => (
-    <Dialog>
-      <DialogTrigger asChild>
-        <button className="text-primary hover:underline underline-offset-2 transition-colors">
-          {alt}
-        </button>
-      </DialogTrigger>
-      <DialogContent className="max-w-screen-lg w-[90vw]">
-        <DialogHeader>
-          <DialogTitle>{alt}</DialogTitle>
-        </DialogHeader>
-        <div className="relative w-full max-h-[80vh] h-full">
-          <img src={src} alt={alt} className="w-full h-full object-contain" />
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  const ImageDialog = ({ src, alt }: { src: string; alt: string }) => {
+    const isPdf = src.endsWith(".pdf");
+
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <button className="text-primary hover:underline underline-offset-2 transition-colors">
+            {isPdf ? (
+              <a
+                href={src}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-primary hover:text-primary/80"
+              >
+                {alt}
+              </a>
+            ) : (
+              alt
+            )}
+          </button>
+        </DialogTrigger>
+        {!isPdf && (
+          <DialogContent className="max-w-[80vw]">
+            <DialogHeader>
+              <DialogTitle>{alt}</DialogTitle>
+            </DialogHeader>
+            <div className="relative w-full max-h-[80vh] h-full">
+              <img
+                src={src}
+                alt={alt}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+    );
+  };
 
   return (
     <section className="flex-1 flex flex-col space-y-4">
