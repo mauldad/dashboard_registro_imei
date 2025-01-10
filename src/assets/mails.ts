@@ -160,6 +160,7 @@ export const rejectedRegister = (
   firstName: string,
   lastName: string,
   reason: string,
+  rejectedLink: string,
 ) => `
 <!doctype html>
 <html lang="es">
@@ -190,6 +191,7 @@ export const rejectedRegister = (
         background-color: #dc3545;
         text-decoration: none;
         border-radius: 5px;
+        margin: 10px 0;
       }
       .footer {
         text-align: center;
@@ -218,11 +220,10 @@ export const rejectedRegister = (
       </p>
       <p><strong>Razón del rechazo:</strong> ${reason}</p>
 
-      <!-- Opción para más información -->
+      <!-- Opción para modificar información -->
       <div style="text-align: center">
-        <a href="https://registrodeimei.cl/contacto/" class="button"
-          >📩 Contactar soporte</a
-        >
+        <a href="${rejectedLink}" class="button">✏️ Modificar datos</a>
+        <a href="https://registrodeimei.cl/contacto/" class="button">📩 Contactar soporte</a>
       </div>
 
       <!-- Mensaje de agradecimiento -->
@@ -240,6 +241,7 @@ export const rejectedRegister = (
 export const rejectedRegisterBusiness = (
   businessName: string,
   reason: string,
+  rejectedLink: string,
 ) => `
 <!doctype html>
 <html lang="es">
@@ -270,6 +272,7 @@ export const rejectedRegisterBusiness = (
         background-color: #dc3545;
         text-decoration: none;
         border-radius: 5px;
+        margin: 10px 0;
       }
       .footer {
         text-align: center;
@@ -301,11 +304,10 @@ export const rejectedRegisterBusiness = (
         Te invitamos a verificar la información proporcionada y realizar una nueva solicitud si corresponde.
       </p>
 
-      <!-- Opción para más información -->
+      <!-- Opción para modificar información -->
       <div style="text-align: center">
-        <a href="https://registrodeimei.cl/contacto/" class="button"
-          >📩 Contactar soporte</a
-        >
+        <a href="${rejectedLink}" class="button">✏️ Modificar datos</a>
+        <a href="https://registrodeimei.cl/contacto/" class="button">📩 Contactar soporte</a>
       </div>
 
       <!-- Mensaje de agradecimiento -->
@@ -318,5 +320,4 @@ export const rejectedRegisterBusiness = (
     </div>
   </body>
 </html>
-
 `;
