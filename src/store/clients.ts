@@ -8,6 +8,7 @@ import {
   successRegister,
   successRegisterBusiness,
 } from "../assets/mails";
+import onboardingUrl from "@/utils/onboarding-url";
 
 interface ClientState {
   clients: IOrder[];
@@ -40,7 +41,11 @@ interface ClientState {
   fetchAnalitycsClients: (channel: string) => Promise<void>;
   updateRegisterStatus: (id: number) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;
-  rejectClient: (rejectedClient: IOrder, reason: string) => Promise<void>;
+  rejectClient: (
+    rejectedClient: IOrder,
+    formData: { reason: string; fields: string[] },
+    rejectedToken: string,
+  ) => Promise<void>;
   deleteUser: (id: number, token: string) => Promise<void>;
 }
 
@@ -138,7 +143,13 @@ const useClientStore = create<ClientState>((set, get) => ({
     });
     set({ clients: newClients });
   },
-  rejectClient: async (rejectedClient: IOrder, reason: string) => {
+  rejectClient: async (
+    rejectedClient: IOrder,
+    formData: { reason: string; fields: string[] },
+    rejectedToken: string,
+  ) => {
+    const { reason, fields } = formData;
+
     const { data, error } = await supabase
       .from("Order")
       .update({
@@ -163,18 +174,22 @@ const useClientStore = create<ClientState>((set, get) => ({
     });
     set({ clients: newClients });
 
+    const rejectedLink = `${onboardingUrl}/order?token=${rejectedToken}`;
+
     await sendEmailUser(
       rejectedClient.email as string,
       `Registro rechazado, Orden nº ${rejectedClient.order_number}`,
       rejectedClient.Account?.is_business
         ? rejectedRegisterBusiness(
             rejectedClient?.Account?.Business?.business_name as string,
-            reason,
+            formData,
+            rejectedLink,
           )
         : rejectedRegister(
             rejectedClient?.Account?.Personal?.first_name as string,
             rejectedClient?.Account?.Personal?.last_name as string,
-            reason,
+            formData,
+            rejectedLink,
           ),
     );
   },

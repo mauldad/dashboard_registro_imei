@@ -23,13 +23,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Ban } from "lucide-react";
+import { Ban, XCircle } from "lucide-react";
 import { useState } from "react";
+import {
+  generateRejectedTokenBusiness,
+  generateRejectedTokenPersonal,
+} from "@/utils/generate-rejected-token";
 
 const rejectFormSchema = z.object({
   reason: z.string().min(1, "La razón es requerida"),
+  fields: z.array(z.string()).min(1, "Selecciona al menos un campo a cambiar"),
 });
 
 type RejectFormData = z.infer<typeof rejectFormSchema>;
@@ -38,7 +53,31 @@ interface RejectFormProps {
   order: IOrder;
 }
 
+const personalFields = [
+  { label: "RUT", value: "rut" },
+  { label: "Carnet de identificación", value: "idCardUrl" },
+  { label: "Nombres", value: "firstName" },
+  { label: "Apellidos", value: "lastName" },
+  { label: "Nacionalidad", value: "nationality" },
+  { label: "Imeis", value: "imeis" },
+  { label: "Comprobante de compra", value: "purchaseReceiptUrl" },
+  { label: "Email", value: "email" },
+  { label: "Teléfono", value: "phoneNumber" },
+];
+
+const businessFields = [
+  { label: "RUT", value: "rut" },
+  { label: "Nombre de la empresa", value: "businessName" },
+  { label: "Nombre de quien registra", value: "registrantName" },
+  { label: "Email", value: "email" },
+  { label: "Excel de imeis", value: "excelImeisUrl" },
+  { label: "Comprobante de importación", value: "importReceiptUrl" },
+];
+
 export default function RejectForm({ order }: RejectFormProps) {
+  const fieldsOptions = order.Account?.is_business
+    ? businessFields
+    : personalFields;
   const [open, setOpen] = useState(false);
   const rejectClient = useClientStore((state) => state.rejectClient);
 
@@ -46,12 +85,17 @@ export default function RejectForm({ order }: RejectFormProps) {
     resolver: zodResolver(rejectFormSchema),
     defaultValues: {
       reason: "",
+      fields: [],
     },
   });
 
   const onSubmit = async (data: RejectFormData) => {
+    const rejectedToken = order.Account?.is_business
+      ? await generateRejectedTokenBusiness(order, data.fields)
+      : await generateRejectedTokenPersonal(order, data.fields);
+
     toast.promise(
-      rejectClient(order, data.reason),
+      rejectClient(order, data, rejectedToken),
       {
         loading: "Procesando el rechazo...",
         success: () => {
@@ -65,7 +109,7 @@ export default function RejectForm({ order }: RejectFormProps) {
         style: {
           minWidth: "200px",
         },
-      }
+      },
     );
   };
 
@@ -111,6 +155,69 @@ export default function RejectForm({ order }: RejectFormProps) {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="fields"
+              render={({ field }) => {
+                const handleSelectChange = (value: string) => {
+                  const currentValues = field.value || [];
+                  const newValues = currentValues.includes(value)
+                    ? currentValues.filter((v) => v !== value)
+                    : [...currentValues, value];
+                  field.onChange(newValues);
+                };
+
+                return (
+                  <FormItem>
+                    <FormLabel className="text-xs text-muted-foreground">
+                      Estado de Pago
+                    </FormLabel>
+                    <Select onValueChange={handleSelectChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione..." {...field} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fieldsOptions.map(
+                          (option) =>
+                            !field.value.includes(option.value) && (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {field.value.map((item, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline-primary"
+                          className="flex items-center gap-1"
+                        >
+                          {fieldsOptions.find((f) => f.value === item)?.label}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedValues = field.value.filter(
+                                (v) => v !== item,
+                              );
+                              field.onChange(updatedValues);
+                            }}
+                            className="ml-1 text-red-500 hover:text-red-700"
+                          >
+                            <XCircle />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </FormItem>
+                );
+              }}
+            />
             <DialogFooter>
               <Button
                 type="button"

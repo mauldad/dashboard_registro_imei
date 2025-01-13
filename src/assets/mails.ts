@@ -156,10 +156,32 @@ export const successRegisterBusiness = (businessName: string) => `
 </html>
 `;
 
+const personalFields = [
+  { label: "RUT", value: "rut" },
+  { label: "Carnet de identificación", value: "idCardUrl" },
+  { label: "Nombres", value: "firstName" },
+  { label: "Apellidos", value: "lastName" },
+  { label: "Nacionalidad", value: "nationality" },
+  { label: "Imeis", value: "imeis" },
+  { label: "Comprobante de compra", value: "purchaseReceiptUrl" },
+  { label: "Email", value: "email" },
+  { label: "Teléfono", value: "phoneNumber" },
+];
+
+const businessFields = [
+  { label: "RUT", value: "rut" },
+  { label: "Nombre de la empresa", value: "businessName" },
+  { label: "Nombre de quien registra", value: "registrantName" },
+  { label: "Email", value: "email" },
+  { label: "Excel de imeis", value: "excelImeisUrl" },
+  { label: "Comprobante de importación", value: "importReceiptUrl" },
+];
+
 export const rejectedRegister = (
   firstName: string,
   lastName: string,
-  reason: string,
+  formData: { reason: string; fields: string[] },
+  rejectedLink: string,
 ) => `
 <!doctype html>
 <html lang="es">
@@ -187,9 +209,10 @@ export const rejectedRegister = (
         display: inline-block;
         padding: 10px 20px;
         color: #fff;
-        background-color: #dc3545;
+        background-color: #28a745;
         text-decoration: none;
         border-radius: 5px;
+        margin: 10px 0;
       }
       .footer {
         text-align: center;
@@ -216,13 +239,23 @@ export const rejectedRegister = (
       <p>
         Lamentamos informarte que tu solicitud de registro de IMEI no ha sido aprobada. 
       </p>
-      <p><strong>Razón del rechazo:</strong> ${reason}</p>
+      <p><strong>Razón del rechazo:</strong> ${formData.reason}</p>
+      <p>
+        Te invitamos a verificar la información proporcionada y realizar una nueva solicitud si corresponde.
+      </p>
+      <p><strong>Campos a modificar:</strong></p>
+      <ul>
+        ${formData.fields
+          .map(
+            (field) =>
+              `<li>${personalFields[field as keyof typeof personalFields]}</li>`,
+          )
+          .join("")}
+      </ul>
 
-      <!-- Opción para más información -->
+      <!-- Opción para modificar información -->
       <div style="text-align: center">
-        <a href="https://registrodeimei.cl/contacto/" class="button"
-          >📩 Contactar soporte</a
-        >
+        <a href="${rejectedLink}" class="button">✏️ Modificar datos</a>
       </div>
 
       <!-- Mensaje de agradecimiento -->
@@ -239,7 +272,8 @@ export const rejectedRegister = (
 
 export const rejectedRegisterBusiness = (
   businessName: string,
-  reason: string,
+  formData: { reason: string; fields: string[] },
+  rejectedLink: string,
 ) => `
 <!doctype html>
 <html lang="es">
@@ -267,9 +301,10 @@ export const rejectedRegisterBusiness = (
         display: inline-block;
         padding: 10px 20px;
         color: #fff;
-        background-color: #dc3545;
+        background-color: #28a745;
         text-decoration: none;
         border-radius: 5px;
+        margin: 10px 0;
       }
       .footer {
         text-align: center;
@@ -296,16 +331,23 @@ export const rejectedRegisterBusiness = (
       <p>
         Lamentamos informarte que tu solicitud de registro de IMEI no ha sido aprobada. 
       </p>
-      <p><strong>Razón del rechazo:</strong> ${reason}</p>
+      <p><strong>Razón del rechazo:</strong> ${formData.reason}</p>
       <p>
         Te invitamos a verificar la información proporcionada y realizar una nueva solicitud si corresponde.
       </p>
+      <p><strong>Campos a modificar:</strong></p>
+      <ul>
+        ${formData.fields
+          .map(
+            (field) =>
+              `<li>${businessFields[field as keyof typeof businessFields]}</li>`,
+          )
+          .join("")}
+      </ul>
 
-      <!-- Opción para más información -->
+      <!-- Opción para modificar información -->
       <div style="text-align: center">
-        <a href="https://registrodeimei.cl/contacto/" class="button"
-          >📩 Contactar soporte</a
-        >
+        <a href="${rejectedLink}" class="button">✏️ Modificar datos</a>
       </div>
 
       <!-- Mensaje de agradecimiento -->
@@ -318,5 +360,4 @@ export const rejectedRegisterBusiness = (
     </div>
   </body>
 </html>
-
 `;
