@@ -170,7 +170,7 @@ export default function RejectForm({ order }: RejectFormProps) {
                 return (
                   <FormItem>
                     <FormLabel className="text-xs text-muted-foreground">
-                      Estado de Pago
+                      Campo a corregir por el cliente
                     </FormLabel>
                     <Select onValueChange={handleSelectChange}>
                       <SelectTrigger>
