@@ -49,6 +49,7 @@ export interface IOrder {
   phone_number: string | null;
   channel: string;
   purchase_number?: string;
+  reject_reason: string | null;
 }
 
 export interface IImei {

@@ -57,6 +57,7 @@ export async function getClients({
         phone_number,
         channel,
         purchase_number,
+        reject_reason,
         Imei (
           imei_number,
           brand,
