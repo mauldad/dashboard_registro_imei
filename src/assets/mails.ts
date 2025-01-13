@@ -156,26 +156,26 @@ export const successRegisterBusiness = (businessName: string) => `
 </html>
 `;
 
-const personalFields = [
-  { label: "RUT", value: "rut" },
-  { label: "Carnet de identificación", value: "idCardUrl" },
-  { label: "Nombres", value: "firstName" },
-  { label: "Apellidos", value: "lastName" },
-  { label: "Nacionalidad", value: "nationality" },
-  { label: "Imeis", value: "imeis" },
-  { label: "Comprobante de compra", value: "purchaseReceiptUrl" },
-  { label: "Email", value: "email" },
-  { label: "Teléfono", value: "phoneNumber" },
-];
+const personalFields = {
+  rut: "RUT",
+  idCardUrl: "Carnet de identificación",
+  firstName: "Nombres",
+  lastName: "Apellidos",
+  nationality: "Nacionalidad",
+  imeis: "Imeis",
+  purchaseReceiptUrl: "Comprobante de compra",
+  email: "Email",
+  phoneNumber: "Teléfono",
+};
 
-const businessFields = [
-  { label: "RUT", value: "rut" },
-  { label: "Nombre de la empresa", value: "businessName" },
-  { label: "Nombre de quien registra", value: "registrantName" },
-  { label: "Email", value: "email" },
-  { label: "Excel de imeis", value: "excelImeisUrl" },
-  { label: "Comprobante de importación", value: "importReceiptUrl" },
-];
+const businessFields = {
+  rut: "RUT",
+  businessName: "Nombre de la empresa",
+  registrantName: "Nombre de quien registra",
+  email: "Email",
+  excelImeisUrl: "Excel de imeis",
+  importReceiptUrl: "Comprobante de importación",
+};
 
 export const rejectedRegister = (
   firstName: string,

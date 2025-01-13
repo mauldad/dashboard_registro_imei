@@ -167,7 +167,7 @@ const useClientStore = create<ClientState>((set, get) => ({
           ...client,
           paid: "rejected" as PaymentStatus,
           registered: false,
-          // reason: reason,
+          reject_reason: reason,
         };
       }
       return client;

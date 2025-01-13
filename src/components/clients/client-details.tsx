@@ -348,6 +348,23 @@ const ClientDetails = ({ order }: DetailsProps) => {
             </Badge>
           </div>
 
+          {order.reject_reason && (
+            <>
+              <Separator />
+              {/* Rejected Reason */}
+              <div className="py-4 px-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    Razón del rechazo:
+                  </span>
+                  <span className="text-sm font-medium">
+                    {order.reject_reason}
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+
           <Separator />
           {/* Documents */}
           {(order.imei_excel_url ||
