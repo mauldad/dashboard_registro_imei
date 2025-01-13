@@ -95,7 +95,7 @@ export default function RejectForm({ order }: RejectFormProps) {
       : await generateRejectedTokenPersonal(order, data.fields);
 
     toast.promise(
-      rejectClient(order, data.reason, rejectedToken),
+      rejectClient(order, data, rejectedToken),
       {
         loading: "Procesando el rechazo...",
         success: () => {

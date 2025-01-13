@@ -43,7 +43,7 @@ interface ClientState {
   updateClient: (updatedClient: IOrder) => void;
   rejectClient: (
     rejectedClient: IOrder,
-    reason: string,
+    formData: { reason: string; fields: string[] },
     rejectedToken: string,
   ) => Promise<void>;
   deleteUser: (id: number, token: string) => Promise<void>;
@@ -145,9 +145,11 @@ const useClientStore = create<ClientState>((set, get) => ({
   },
   rejectClient: async (
     rejectedClient: IOrder,
-    reason: string,
+    formData: { reason: string; fields: string[] },
     rejectedToken: string,
   ) => {
+    const { reason, fields } = formData;
+
     const { data, error } = await supabase
       .from("Order")
       .update({
@@ -173,7 +175,6 @@ const useClientStore = create<ClientState>((set, get) => ({
     set({ clients: newClients });
 
     const rejectedLink = `${onboardingUrl}/order?token=${rejectedToken}`;
-    console.log(rejectedLink);
 
     await sendEmailUser(
       rejectedClient.email as string,
@@ -181,13 +182,13 @@ const useClientStore = create<ClientState>((set, get) => ({
       rejectedClient.Account?.is_business
         ? rejectedRegisterBusiness(
             rejectedClient?.Account?.Business?.business_name as string,
-            reason,
+            formData,
             rejectedLink,
           )
         : rejectedRegister(
             rejectedClient?.Account?.Personal?.first_name as string,
             rejectedClient?.Account?.Personal?.last_name as string,
-            reason,
+            formData,
             rejectedLink,
           ),
     );
