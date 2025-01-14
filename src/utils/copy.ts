@@ -9,6 +9,7 @@ interface PersonalOrderData {
   fullName: string;
   technicalDetails: string;
   description: string;
+  nationality: string;
 }
 
 interface BusinessOrderData {
@@ -32,6 +33,7 @@ export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
     }`.trim(),
     technicalDetails: order.order_number,
     description: "Uso personal",
+    nationality: order.nationality || "",
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
@@ -43,7 +45,7 @@ export const copyBusinessOrder = async (order: IOrder): Promise<void> => {
     brand: "OTRAS MARCAS",
     documentType: "RUT",
     documentNumber: order.Account?.rut,
-    description: `${order.Account?.rut}, ${order.Account?.Business?.business_name}, ${order.registrant_name}, ${order.email}`,
+    description: `RUT Empresa: ${order.Account?.rut}\nNombre de Empresa: ${order.Account?.Business?.business_name}\nNombre Contacto: ${order.registrant_name}\nEmail: ${order.email}`,
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
