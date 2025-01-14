@@ -1,3 +1,4 @@
+import { IImei } from "@/types/client";
 import { IOrder } from "@/types/order";
 
 interface PersonalOrderData {
@@ -9,6 +10,7 @@ interface PersonalOrderData {
   fullName: string;
   technicalDetails: string;
   description: string;
+  nationality: string;
 }
 
 interface BusinessOrderData {
@@ -23,7 +25,7 @@ interface BusinessOrderData {
 export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
   const data: PersonalOrderData = {
     isBusiness: false,
-    imeis: order.Imei.map((imei) => imei.imei_number),
+    imeis: order.Imei.map((imei: IImei) => imei.imei_number),
     brand: "OTRAS MARCAS",
     documentType: "RUT",
     documentNumber: order.Account?.rut,
@@ -32,6 +34,7 @@ export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
     }`.trim(),
     technicalDetails: order.order_number,
     description: "Uso personal",
+    nationality: order.Account?.Personal?.nationality || "",
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
@@ -43,21 +46,15 @@ export const copyBusinessOrder = async (order: IOrder): Promise<void> => {
     brand: "OTRAS MARCAS",
     documentType: "RUT",
     documentNumber: order.Account?.rut,
-    description: `${order.Account?.rut}, ${order.Account?.Business?.business_name}, ${order.registrant_name}, ${order.email}`,
+    description: `RUT Empresa: ${order.Account?.rut}\nNombre de Empresa: ${order.Account?.Business?.business_name}\nNombre Contacto: ${order.registrant_name}\nEmail: ${order.email}`,
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
 
 export const exportImeisToCSV = (imeis: IOrder["Imei"]): string => {
   const csvContent = imeis
-    .map((imei) => {
-      return [
-        imei.imei_number,
-        imei.brand,
-        imei.model,
-        imei.type,
-        imei.created_at,
-      ].join(",");
+    .map((imei: IImei) => {
+      return [imei.imei_number, imei.brand, imei.model, imei.type].join(",");
     })
     .join("\n");
 
