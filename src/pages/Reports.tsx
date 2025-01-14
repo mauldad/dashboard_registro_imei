@@ -10,7 +10,7 @@ import { endOfYear, format, startOfYear, subMonths, subYears } from "date-fns";
 import { es } from "date-fns/locale";
 import { exportToExcel } from "../utils/export";
 import useClientStore from "../store/clients";
-import useAuthStore from "../store/auth";
+import useAuthStore, { UserPermissionsToken } from "../store/auth";
 
 const Reports = () => {
   const [timeRange, setTimeRange] = useState("month");
@@ -22,8 +22,7 @@ const Reports = () => {
   const [selectedSemester, setSelectedSemester] = useState("1");
   const [loading, setLoading] = useState(false);
 
-  const getChannelToken = useAuthStore((state) => state.getChannelToken);
-  const channel = getChannelToken();
+  const token = useAuthStore((state) => state.token) as UserPermissionsToken;
 
   const clients = useClientStore((state) => state.analitycsClients);
   const fetchAnalitycsClients = useClientStore(
@@ -33,7 +32,7 @@ const Reports = () => {
   useEffect(() => {
     const getClients = async () => {
       setLoading(true);
-      await fetchAnalitycsClients(channel);
+      await fetchAnalitycsClients(token.channel);
       setLoading(false);
     };
     getClients();
@@ -105,7 +104,7 @@ const Reports = () => {
         break;
     }
 
-    exportToExcel(filteredData, reportName, channel);
+    exportToExcel(filteredData, reportName, token.channel, token.is_admin);
   };
 
   const getStats = () => {
@@ -138,7 +137,7 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {channel === "base" && (
+        {token.channel === "base" && token.is_admin && (
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex justify-between items-start">
               <div>
@@ -182,7 +181,7 @@ const Reports = () => {
           </div>
         </div>
 
-        {channel === "base" && (
+        {token.channel === "base" && token.is_admin && (
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex justify-between items-start">
               <div>

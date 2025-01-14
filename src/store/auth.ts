@@ -2,13 +2,19 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import supabase from "../data/supabase";
 
+export interface UserPermissionsToken {
+  channel: string;
+  is_admin: boolean;
+  is_operator: boolean;
+  exp: number;
+}
+
 interface AuthStore {
-  token?: string;
+  token?: UserPermissionsToken;
   rememberUser: boolean;
   signIn: (email: string, password: string, remember: boolean) => Promise<void>;
   setToken: (token: string) => void;
   removeToken: () => void;
-  getChannelToken: () => string;
   initialize: () => void;
 }
 
@@ -32,18 +38,16 @@ const useAuthStore = create<AuthStore>()(
         }
         get().setToken(token);
       },
-      getChannelToken: () => {
-        const token = get().token;
-        if (!token) {
-          throw new Error("No hay token");
-        }
-
-        const decodeToken = JSON.parse(atob(token.split(".")[1]));
-        return decodeToken.channel;
-      },
       setToken: (token: string) => {
-        set({ token });
-        scheduleTokenRemoval(token);
+        const decodeToken = JSON.parse(atob(token.split(".")[1]));
+        const userPermissions = {
+          channel: decodeToken.channel,
+          is_admin: decodeToken.is_admin,
+          is_operator: decodeToken.is_operator,
+          exp: decodeToken.exp,
+        };
+        set({ token: userPermissions });
+        scheduleTokenRemoval(userPermissions);
       },
       removeToken: () => set({ token: undefined }),
       initialize: () => {
@@ -59,11 +63,10 @@ const useAuthStore = create<AuthStore>()(
   ),
 );
 
-function scheduleTokenRemoval(token: string) {
+function scheduleTokenRemoval(token: UserPermissionsToken) {
   try {
-    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
     const currentTime = Math.floor(Date.now() / 1000);
-    const expTime = tokenPayload.exp;
+    const expTime = token.exp;
 
     if (!expTime || currentTime >= expTime) {
       useAuthStore.getState().removeToken();

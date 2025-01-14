@@ -40,7 +40,7 @@ import {
   Smartphone,
   X,
 } from "lucide-react";
-import useAuthStore from "@/store/auth";
+import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 
 interface DetailsProps {
   order: IOrder;
@@ -83,8 +83,7 @@ const ImageDialog = ({ src, alt }: { src: string; alt: string }) => {
 };
 
 const ClientDetails = ({ order }: DetailsProps) => {
-  const getChannelToken = useAuthStore((state) => state.getChannelToken);
-  const channel = getChannelToken();
+  const token = useAuthStore((state) => state.token) as UserPermissionsToken;
 
   return (
     <Sheet>
@@ -324,7 +323,7 @@ const ClientDetails = ({ order }: DetailsProps) => {
           <div className="py-4 px-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Pago:</span>
-              {channel === "base" && (
+              {token.channel === "base" && token.is_admin && (
                 <span className="text-sm font-medium">
                   ${order.total_paid.toLocaleString("es-CL")}
                 </span>

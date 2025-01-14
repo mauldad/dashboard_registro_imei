@@ -5,6 +5,7 @@ export const exportToExcel = (
   data: IOrder[],
   filename: string,
   channel: string,
+  isAdmin: boolean,
 ) => {
   const paidEnum = {
     pending: "Pendiente",
@@ -13,7 +14,7 @@ export const exportToExcel = (
   };
 
   const imeiData = data.map((order) =>
-    order.Imei.map((imei, index) => ({
+    order.Imei?.map((imei, index) => ({
       [`IMEI ${index + 1}`]: imei.imei_number || "",
       [`Marca ${index + 1}`]: imei.brand || "",
       [`Modelo ${index + 1}`]: imei.model || "",
@@ -31,16 +32,17 @@ export const exportToExcel = (
     WhatsApp: client.phone_number,
     "Registro IMEI": client.has_registration ? "Sí" : "No",
     "Antivirus Premium": client.has_antivirus ? "Sí" : "No",
-    ...(channel === "base" && {
-      "Total Pagado": client.total_paid.toLocaleString("es-CL", {
-        style: "currency",
-        currency: "CLP",
+    ...(channel === "base" &&
+      isAdmin && {
+        "Total Pagado": client.total_paid.toLocaleString("es-CL", {
+          style: "currency",
+          currency: "CLP",
+        }),
       }),
-    }),
     "Estado Registro": client.registered ? "Registrado" : "En Espera",
     "Estado Pago": paidEnum[client.paid],
     "Fecha Pago": client.created_at,
-    ...imeiData[index].reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+    ...imeiData[index]?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
   }));
 
   const ws = XLSX.utils.json_to_sheet(exportData);
