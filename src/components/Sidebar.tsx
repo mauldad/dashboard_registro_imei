@@ -53,7 +53,7 @@ const Sidebar = ({
         {!isCollapsed && (
           <div className="transition-opacity duration-200">
             <h1 className="text-lg font-bold text-gray-800">IMEI SYSTEM</h1>
-            <p className="text-xs text-gray-600">Sistema MB Services vs1.0.1</p>
+            <p className="text-xs text-gray-600">Sistema MB Services vs1.0.4</p>
           </div>
         )}
         <div className="flex items-center">

@@ -1,10 +1,38 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MenuIcon } from "lucide-react";
 import Sidebar from "./Sidebar";
+import supabase from "@/data/supabase";
+import { User } from "@supabase/supabase-js";
+import useAuthStore from "@/store/auth";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [userInfo, setUserInfo] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { token } = useAuthStore((state) => state);
+
+  useEffect(() => {
+    const fetchSignedUser = async () => {
+      setLoading(true);
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      setLoading(false);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setUserInfo(user);
+    };
+
+    if (!userInfo) {
+      fetchSignedUser();
+    }
+  }, [loading, userInfo]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex overflow-hidden">
@@ -35,10 +63,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </button>
           <div className="flex items-center gap-4 ml-auto">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">
-                Admin MB Services
-              </p>
-              {/*  <p className="text-xs text-gray-500">admin@company.com</p>*/}
+              {loading ? (
+                <p className="text-sm font-medium text-gray-900">...</p>
+              ) : (
+                <p className="text-sm font-medium text-gray-900">
+                  {userInfo?.email} -{" "}
+                  {token?.is_admin
+                    ? "Admin"
+                    : token?.is_operator
+                      ? "Operador"
+                      : "Usuario"}
+                </p>
+              )}
             </div>
             <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
               <img
