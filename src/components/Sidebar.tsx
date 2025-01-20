@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -27,14 +28,20 @@ const Sidebar = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const removeToken = useAuthStore((state) => state.removeToken);
+  const { removeToken, token } = useAuthStore((state) => state);
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: Users, label: "Clientes", path: "/clients" },
     { icon: FileSpreadsheet, label: "Reportes", path: "/reports" },
     { icon: Settings, label: "Configuración", path: "/settings" },
-  ];
+    { icon: UserCog, label: "Usuarios", path: "/users" },
+  ].filter((item) => {
+    if (item.path === "/users" && !token?.is_admin) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <aside
@@ -46,7 +53,7 @@ const Sidebar = ({
         {!isCollapsed && (
           <div className="transition-opacity duration-200">
             <h1 className="text-lg font-bold text-gray-800">IMEI SYSTEM</h1>
-            <p className="text-xs text-gray-600">Sistema MB Services vs1.0.1</p>
+            <p className="text-xs text-gray-600">Sistema MB Services vs1.0.4</p>
           </div>
         )}
         <div className="flex items-center">

@@ -43,7 +43,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import useAuthStore from "@/store/auth";
+import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 import useClientStore from "@/store/clients";
 
 interface ClientsTableProps {
@@ -66,9 +66,8 @@ const ClientsTable = ({
   onPageSizeChange,
 }: ClientsTableProps) => {
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
-  const getChannelToken = useAuthStore((state) => state.getChannelToken);
+  const token = useAuthStore((state) => state.token) as UserPermissionsToken;
   const pageSize = useClientStore((state) => state.pageSize);
-  const channel = getChannelToken();
 
   const handleCopy = async (order: IOrder) => {
     try {
@@ -141,9 +140,11 @@ const ClientsTable = ({
               <TableHead>Comprobante</TableHead>
               <TableHead>IMEIs</TableHead>
               <TableHead>Estado</TableHead>
-              {channel === "base" && <TableHead>Pago</TableHead>}
+              {token.channel === "base" && token.is_admin && (
+                <TableHead>Pago</TableHead>
+              )}
               <TableHead>Estado de Pago</TableHead>
-              {channel === "base" && <TableHead>Acciones</TableHead>}
+              {token.channel === "base" && <TableHead>Acciones</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -221,7 +222,7 @@ const ClientsTable = ({
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  {channel === "base" && (
+                  {token.channel === "base" && token.is_admin && (
                     <TableCell>
                       ${order.total_paid.toLocaleString("es-CL")}
                     </TableCell>
@@ -244,7 +245,7 @@ const ClientsTable = ({
                           : "Rechazado"}
                     </Badge>
                   </TableCell>
-                  {channel === "base" && (
+                  {token.channel === "base" && (
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button

@@ -12,7 +12,7 @@ import AnalyticsChart from "../components/AnalyticsChart";
 import { exportToExcel } from "../utils/export";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/client-table-skeleton";
-import useAuthStore from "../store/auth";
+import useAuthStore, { UserPermissionsToken } from "../store/auth";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 
@@ -20,8 +20,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-  const getChannelToken = useAuthStore((state) => state.getChannelToken);
-  const authChannel = getChannelToken();
+  const token = useAuthStore((state) => state.token) as UserPermissionsToken;
+
   const {
     clients,
     analitycsClients,
@@ -37,18 +37,20 @@ const Dashboard = () => {
     const getClients = async () => {
       setLoading(true);
       await fetchClients({
-        channel: authChannel,
+        channel: token.channel,
         query: searchParams.get("query") || undefined,
         filters: {
           month: searchParams.get("month") || undefined,
           channel:
-            authChannel === "base" ? searchParams.get("channel") : authChannel,
+            token.channel === "base"
+              ? searchParams.get("channel")
+              : token.channel,
           type: searchParams.get("type") || undefined,
           payment: searchParams.get("payment") || undefined,
           status: searchParams.get("status") || undefined,
         },
       });
-      await fetchAnalitycsClients(authChannel);
+      await fetchAnalitycsClients(token.channel);
       setLoading(false);
     };
     getClients();
@@ -87,7 +89,7 @@ const Dashboard = () => {
       },
     ];
 
-    if (authChannel !== "base") {
+    if (token.channel !== "base") {
       return stats.filter((s) => s.title !== "Empresas");
     }
     return stats;
@@ -105,12 +107,14 @@ const Dashboard = () => {
   const onPageSizeChange = async (size: number) => {
     setLoading(true);
     await fetchClients({
-      channel: authChannel,
+      channel: token.channel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,
         channel:
-          authChannel === "base" ? searchParams.get("channel") : authChannel,
+          token.channel === "base"
+            ? searchParams.get("channel")
+            : token.channel,
         type: searchParams.get("type") || undefined,
         payment: searchParams.get("payment") || undefined,
         status: searchParams.get("status") || undefined,
@@ -123,12 +127,14 @@ const Dashboard = () => {
   const onPageChange = async (page: number) => {
     setLoading(true);
     await fetchClients({
-      channel: authChannel,
+      channel: token.channel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,
         channel:
-          authChannel === "base" ? searchParams.get("channel") : authChannel,
+          token.channel === "base"
+            ? searchParams.get("channel")
+            : token.channel,
         type: searchParams.get("type") || undefined,
         payment: searchParams.get("payment") || undefined,
         status: searchParams.get("status") || undefined,
@@ -145,7 +151,12 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
           onClick={() =>
-            exportToExcel(clients, "dashboard-export", authChannel)
+            exportToExcel(
+              clients,
+              "dashboard-export",
+              token.channel,
+              token.is_admin,
+            )
           }
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
@@ -182,7 +193,7 @@ const Dashboard = () => {
           <AnalyticsChart />
         </div>
 
-        {authChannel === "base" && (
+        {token.channel === "base" && (
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">
               Distribución de Clientes

@@ -5,7 +5,7 @@ import ClientsTable from "@/components/clients/clients-table";
 import { exportToExcel } from "@/utils/export";
 import useClientStore from "@/store/clients";
 import ClientsTableSkeleton from "@/components/skeletons/client-table-skeleton";
-import useAuthStore from "@/store/auth";
+import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 import { ClientsSearch } from "@/components/clients/clients-search";
 import { ClientsFilters } from "@/components/clients/clients-filters";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,7 @@ const Clients = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
 
-  const getChannelToken = useAuthStore((state) => state.getChannelToken);
-  const channel = getChannelToken();
+  const token = useAuthStore((state) => state.token) as UserPermissionsToken;
 
   const {
     clients,
@@ -31,7 +30,7 @@ const Clients = () => {
     const getClients = async () => {
       setLoading(true);
       await fetchClients({
-        channel,
+        channel: token.channel,
         query: searchParams.get("query") || undefined,
         filters: {
           month: searchParams.get("month") || undefined,
@@ -59,7 +58,7 @@ const Clients = () => {
   const onPageSizeChange = async (size: number) => {
     setLoading(true);
     await fetchClients({
-      channel,
+      channel: token.channel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,
@@ -76,7 +75,7 @@ const Clients = () => {
   const onPageChange = async (page: number) => {
     setLoading(true);
     await fetchClients({
-      channel,
+      channel: token.channel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,
@@ -103,7 +102,9 @@ const Clients = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={() => exportToExcel(clients, "clientes-export", channel)}
+            onClick={() =>
+              exportToExcel(clients, "clientes-export", token.channel)
+            }
             disabled={loading}
           >
             <Download size={20} />
@@ -114,7 +115,7 @@ const Clients = () => {
       </div>
 
       <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm p-6">
-        <ClientsFilters channel={channel} />
+        <ClientsFilters channel={token.channel} />
         {loading ? (
           <ClientsTableSkeleton />
         ) : (
