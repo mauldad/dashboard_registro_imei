@@ -46,7 +46,20 @@ interface DetailsProps {
   order: IOrder;
 }
 
-const ImageDialog = ({ src, alt }: { src: string; alt: string }) => {
+type ListItem = {
+  label: string;
+  value: string;
+};
+
+const ImageDialog = ({
+  src,
+  alt,
+  listItems = [],
+}: {
+  src: string;
+  alt: string;
+  listItems?: ListItem[];
+}) => {
   const isPdf = src.endsWith(".pdf");
 
   return (
@@ -73,8 +86,25 @@ const ImageDialog = ({ src, alt }: { src: string; alt: string }) => {
           <DialogHeader>
             <DialogTitle>{alt}</DialogTitle>
           </DialogHeader>
-          <div className="relative w-full max-h-[80vh] h-full">
-            <img src={src} alt={alt} className="w-full h-full object-contain" />
+          <div className="relative w-full max-h-[80vh] h-full mb-4 flex flex-col gap-4">
+            {listItems.length > 0 && (
+              <div className="overflow-y-auto max-h-40">
+                <ul className="list-disc pl-5">
+                  {listItems.map((item, index) => (
+                    <li key={index} className="text-sm text-gray-700">
+                      <strong>{item.label}:</strong> {item.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="flex-1 flex justify-center items-center overflow-hidden">
+              <img
+                src={src}
+                alt={alt}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
           </div>
         </DialogContent>
       )}
@@ -251,6 +281,12 @@ const ClientDetails = ({ order }: DetailsProps) => {
                             <ImageDialog
                               src={imei.imei_image}
                               alt={`IMEI ${imei.imei_number}`}
+                              listItems={[
+                                {
+                                  label: "IMEI",
+                                  value: imei.imei_number,
+                                },
+                              ]}
                             />
                           </div>
                         )}
@@ -400,6 +436,17 @@ const ClientDetails = ({ order }: DetailsProps) => {
                     <ImageDialog
                       src={order.Account.Personal.id_card_url}
                       alt="Cédula de Identidad"
+                      listItems={[
+                        { label: "RUT", value: order.Account.rut },
+                        {
+                          label: "Nombres",
+                          value: order.Account.Personal.first_name,
+                        },
+                        {
+                          label: "Apellidos",
+                          value: order.Account.Personal.last_name,
+                        },
+                      ]}
                     />
                   )}
               </div>
