@@ -29,8 +29,8 @@ export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
     brand: "OTRAS MARCAS",
     documentType: "RUT",
     documentNumber: order.Account?.rut,
-    fullName: `${order.Account?.Personal?.first_name || ""} ${
-      order.Account?.Personal?.last_name || ""
+    fullName: `${order.Account?.Personal?.first_name.split(" ")[0] || ""} ${
+      order.Account?.Personal?.last_name.split(" ")[0] || ""
     }`.trim(),
     technicalDetails: order.order_number,
     description: "Uso personal",
