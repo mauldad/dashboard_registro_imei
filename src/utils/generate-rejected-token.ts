@@ -48,7 +48,7 @@ export const generateRejectedTokenBusiness = async (
   rejectedFields: string[],
   rejectionId: number,
 ) => {
-  const personalOrder = {
+  const businessOrder = {
     rut: order.Account?.rut,
     businessName: order.Account?.Business?.business_name,
     registrantName: order.registrant_name,
@@ -56,9 +56,11 @@ export const generateRejectedTokenBusiness = async (
     excelImeisUrl: order.imei_excel_url,
     importReceiptUrl: order.import_receipt_url,
   };
-  const rejectedTokenFields = rejectedFields.map((field) => {
-    return { field: personalOrder[field] };
-  });
+
+  const rejectedTokenFields = rejectedFields.reduce((acc, field) => {
+    acc[field] = businessOrder[field];
+    return acc;
+  }, {});
   const rejectedToken = {
     id: order.id,
     isBusiness: true,
