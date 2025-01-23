@@ -1,6 +1,12 @@
+import onboardingUrl from "@/utils/onboarding-url";
 import { IOrder } from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
+import { rejectedRegister, rejectedRegisterBusiness } from "@/assets/mails";
+import {
+  generateRejectedTokenBusiness,
+  generateRejectedTokenPersonal,
+} from "@/utils/generate-rejected-token";
 
 export interface ClientFilters {
   month?: string;
@@ -400,4 +406,70 @@ export const uploadExcelImeisFile = async (file: File) => {
     .from("imeis")
     .getPublicUrl(uploadData.path);
   return publicUrlData.publicUrl;
+};
+
+export const rejectClient = async (
+  order: IOrder,
+  formData: { reason: string; fields: string[] },
+) => {
+  try {
+    const { reason, fields } = formData;
+
+    const { error: orderError } = await supabase
+      .from("Order")
+      .update({
+        paid: "rejected",
+        registered: false,
+      })
+      .eq("id", order.id);
+
+    if (orderError) throw new Error(orderError.message);
+
+    const { data: rejection, error: rejectionError } = await supabase
+      .from("Rejection")
+      .insert({
+        order_id: order.id,
+        reason,
+        fields,
+      })
+      .select("id")
+      .single();
+
+    if (rejectionError) throw new Error(rejectionError.message);
+
+    await sendRejectedEmail(order, formData, rejection.id);
+
+    return { error: null };
+  } catch (error) {
+    console.error("Reject Client Error:", error);
+    return { error: error };
+  }
+};
+
+const sendRejectedEmail = async (
+  order: IOrder,
+  formData: { reason: string; fields: string[] },
+  rejectionId: number,
+) => {
+  const rejectedToken = order.Account?.is_business
+    ? await generateRejectedTokenBusiness(order, formData.fields, rejectionId)
+    : await generateRejectedTokenPersonal(order, formData.fields, rejectionId);
+  const rejectedLink = `${onboardingUrl}/order?token=${rejectedToken}`;
+
+  await sendEmailUser(
+    order.email as string,
+    `Registro rechazado, Orden nº ${order.order_number}`,
+    order.Account?.is_business
+      ? rejectedRegisterBusiness(
+          order?.Account?.Business?.business_name as string,
+          formData,
+          rejectedLink,
+        )
+      : rejectedRegister(
+          order?.Account?.Personal?.first_name as string,
+          order?.Account?.Personal?.last_name as string,
+          formData,
+          rejectedLink,
+        ),
+  );
 };

@@ -3,6 +3,7 @@ import { IOrder } from "../types/client";
 export const generateRejectedTokenPersonal = async (
   order: IOrder,
   rejectedFields: string[],
+  rejectionId: number,
 ) => {
   const personalOrder = {
     idCardUrl: order.Account?.Personal?.id_card_url,
@@ -22,6 +23,7 @@ export const generateRejectedTokenPersonal = async (
   }, {});
   const rejectedToken = {
     id: order.id,
+    rejectionId,
     isBusiness: false,
     paid: order.paid,
     orderNumber: order.order_number,
@@ -44,6 +46,7 @@ export const generateRejectedTokenPersonal = async (
 export const generateRejectedTokenBusiness = async (
   order: IOrder,
   rejectedFields: string[],
+  rejectionId: number,
 ) => {
   const personalOrder = {
     rut: order.Account?.rut,
@@ -59,6 +62,7 @@ export const generateRejectedTokenBusiness = async (
   const rejectedToken = {
     id: order.id,
     isBusiness: true,
+    rejectionId,
     paid: order.paid,
     orderNumber: order.order_number,
     fields: rejectedTokenFields,
