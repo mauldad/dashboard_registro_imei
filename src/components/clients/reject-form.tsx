@@ -37,10 +37,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Ban, XCircle } from "lucide-react";
 import { useState } from "react";
-import {
-  generateRejectedTokenBusiness,
-  generateRejectedTokenPersonal,
-} from "@/utils/generate-rejected-token";
 
 const rejectFormSchema = z.object({
   reason: z.string().min(1, "La razón es requerida"),
@@ -90,12 +86,8 @@ export default function RejectForm({ order }: RejectFormProps) {
   });
 
   const onSubmit = async (data: RejectFormData) => {
-    const rejectedToken = order.Account?.is_business
-      ? await generateRejectedTokenBusiness(order, data.fields)
-      : await generateRejectedTokenPersonal(order, data.fields);
-
     toast.promise(
-      rejectClient(order, data, rejectedToken),
+      rejectClient(order, data),
       {
         loading: "Procesando el rechazo...",
         success: () => {
