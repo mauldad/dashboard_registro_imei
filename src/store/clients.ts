@@ -1,13 +1,14 @@
 import { create } from "zustand";
-import {
-  getClients,
-  getClientsStats,
-  rejectClient,
-  sendEmailUser,
-} from "../data/clients";
+import { getClients, getClientsStats, sendEmailUser } from "../data/clients";
 import { IOrder, PaymentStatus } from "../types/client";
 import supabase from "../data/supabase";
-import { successRegister, successRegisterBusiness } from "../assets/mails";
+import {
+  rejectedRegister,
+  rejectedRegisterBusiness,
+  successRegister,
+  successRegisterBusiness,
+} from "../assets/mails";
+import onboardingUrl from "@/utils/onboarding-url";
 
 interface ClientState {
   clients: IOrder[];
@@ -43,6 +44,7 @@ interface ClientState {
   rejectClient: (
     rejectedClient: IOrder,
     formData: { reason: string; fields: string[] },
+    rejectedToken: string,
   ) => Promise<void>;
   deleteUser: (id: number, token: string) => Promise<void>;
 }
@@ -144,10 +146,18 @@ const useClientStore = create<ClientState>((set, get) => ({
   rejectClient: async (
     rejectedClient: IOrder,
     formData: { reason: string; fields: string[] },
+    rejectedToken: string,
   ) => {
     const { reason, fields } = formData;
 
-    const { error } = await rejectClient(rejectedClient, formData);
+    const { data, error } = await supabase
+      .from("Order")
+      .update({
+        paid: "rejected",
+        registered: false,
+        reject_reason: reason,
+      })
+      .eq("id", rejectedClient.id);
 
     if (error) throw new Error(error.message);
 
@@ -163,6 +173,25 @@ const useClientStore = create<ClientState>((set, get) => ({
       return client;
     });
     set({ clients: newClients });
+
+    const rejectedLink = `${onboardingUrl}/order?token=${rejectedToken}`;
+
+    await sendEmailUser(
+      rejectedClient.email as string,
+      `Registro rechazado, Orden nº ${rejectedClient.order_number}`,
+      rejectedClient.Account?.is_business
+        ? rejectedRegisterBusiness(
+            rejectedClient?.Account?.Business?.business_name as string,
+            formData,
+            rejectedLink,
+          )
+        : rejectedRegister(
+            rejectedClient?.Account?.Personal?.first_name as string,
+            rejectedClient?.Account?.Personal?.last_name as string,
+            formData,
+            rejectedLink,
+          ),
+    );
   },
   deleteUser: async (id: number, token: string) => {
     const { data, error } = await supabase.rpc("delete_user", {

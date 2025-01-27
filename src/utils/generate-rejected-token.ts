@@ -3,7 +3,6 @@ import { IOrder } from "../types/client";
 export const generateRejectedTokenPersonal = async (
   order: IOrder,
   rejectedFields: string[],
-  rejectionId: number,
 ) => {
   const personalOrder = {
     idCardUrl: order.Account?.Personal?.id_card_url,
@@ -23,7 +22,6 @@ export const generateRejectedTokenPersonal = async (
   }, {});
   const rejectedToken = {
     id: order.id,
-    rejectionId,
     isBusiness: false,
     paid: order.paid,
     orderNumber: order.order_number,
@@ -46,9 +44,8 @@ export const generateRejectedTokenPersonal = async (
 export const generateRejectedTokenBusiness = async (
   order: IOrder,
   rejectedFields: string[],
-  rejectionId: number,
 ) => {
-  const businessOrder = {
+  const personalOrder = {
     rut: order.Account?.rut,
     businessName: order.Account?.Business?.business_name,
     registrantName: order.registrant_name,
@@ -56,15 +53,12 @@ export const generateRejectedTokenBusiness = async (
     excelImeisUrl: order.imei_excel_url,
     importReceiptUrl: order.import_receipt_url,
   };
-
-  const rejectedTokenFields = rejectedFields.reduce((acc, field) => {
-    acc[field] = businessOrder[field];
-    return acc;
-  }, {});
+  const rejectedTokenFields = rejectedFields.map((field) => {
+    return { field: personalOrder[field] };
+  });
   const rejectedToken = {
     id: order.id,
     isBusiness: true,
-    rejectionId,
     paid: order.paid,
     orderNumber: order.order_number,
     fields: rejectedTokenFields,
