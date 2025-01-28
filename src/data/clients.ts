@@ -1,5 +1,5 @@
 import onboardingUrl from "@/utils/onboarding-url";
-import { IOrder } from "../types/client";
+import { ChannelType, IOrder, PaymentStatus } from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
 import { rejectedRegister, rejectedRegisterBusiness } from "@/assets/mails";
@@ -145,11 +145,22 @@ export async function getClients({
   }
 }
 
-export async function getClientsStats(channel: string): Promise<
+export interface ClientStatsFilters {
+  month?: string;
+  year?: string;
+}
+
+export async function getClientsStats(
+  channel: string,
+  filters?: ClientStatsFilters,
+): Promise<
   {
     is_business: boolean;
+    rut: string;
     registered: boolean;
     total_paid: number;
+    paid: PaymentStatus;
+    channel: ChannelType;
     created_at: string;
   }[]
 > {
@@ -158,9 +169,11 @@ export async function getClientsStats(channel: string): Promise<
       .from("Order")
       .select(
         `
-        Account (is_business),
+        Account (is_business, rut),
         registered,
+        channel,
         total_paid,
+        paid,
         created_at
       `,
       )
@@ -168,6 +181,22 @@ export async function getClientsStats(channel: string): Promise<
 
     if (channel !== "base") {
       queryBuilder.eq("channel", channel);
+    }
+
+    if (filters) {
+      if (filters.month && filters.year) {
+        const startDate = `${filters.year}-${filters.month}-01`;
+        const endDate = new Date(
+          parseInt(filters.year),
+          parseInt(filters.month),
+          0,
+        ).toISOString();
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      } else if (filters.year) {
+        const startDate = `${filters.year}-01-01`;
+        const endDate = `${filters.year}-12-31`;
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      }
     }
 
     const { data, error } = await queryBuilder;
@@ -178,8 +207,11 @@ export async function getClientsStats(channel: string): Promise<
 
     const processedData = data.map((item) => ({
       is_business: item.Account.is_business,
+      rut: item.Account.rut,
       registered: item.registered,
+      channel: item.channel,
       total_paid: item.total_paid,
+      paid: item.paid,
       created_at: item.created_at,
     }));
 

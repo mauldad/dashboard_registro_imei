@@ -28,6 +28,7 @@ export interface Client {
 }
 
 export type PaymentStatus = "approved" | "pending" | "rejected";
+export type ChannelType = "base" | "falabella" | "walmart";
 
 export interface IOrder {
   id: number;
