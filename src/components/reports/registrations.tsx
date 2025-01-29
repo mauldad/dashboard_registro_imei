@@ -1,55 +1,22 @@
-import { AtSign, Filter, PieChart, Users } from "lucide-react";
+import { AtSign, Ban, Filter, PieChart, Users } from "lucide-react";
 import useClientStore from "@/store/clients";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 import ReportFilters from "./report-filters";
+import SLAReport from "./sla-report";
+import { useSearchParams } from "react-router-dom";
+import { getRegistrationsStats } from "@/utils/registrations-analitycs";
 
 const RegistrationsReport = () => {
   const token = useAuthStore((state) => state.token) as UserPermissionsToken;
   const clients = useClientStore((state) => state.analitycsClients);
+  const rejectionsData = useClientStore((state) => state.analitycsRejections);
+  const [searchParams] = useSearchParams();
 
-  const getStats = () => {
-    const filteredData = clients;
-
-    const companyCount = filteredData.reduce(
-      (acc, client) => {
-        if (client.is_business) {
-          acc[client.rut] = (acc[client.rut] || 0) + 1;
-        }
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-    const mostRepeatedBusinesses = Object.entries(companyCount)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([rut, count]) => {
-        return {
-          rut,
-          count,
-        };
-      });
-
-    const stats = {
-      total: filteredData.length,
-      business: filteredData.filter((c) => c.is_business).length,
-      personal: filteredData.filter((c) => !c.is_business).length,
-      registered: filteredData.filter((c) => c.registered).length,
-      waiting: filteredData.filter((c) => !c.registered).length,
-      base: filteredData.filter((c) => c.channel === "base" && c.registered)
-        .length,
-      falabella: filteredData.filter(
-        (c) => c.channel === "falabella" && c.registered,
-      ).length,
-      walmart: filteredData.filter(
-        (c) => c.channel === "walmart" && c.registered,
-      ).length,
-      topClients: mostRepeatedBusinesses,
-    };
-
-    return stats;
-  };
-
-  const stats = getStats();
+  const stats = getRegistrationsStats(
+    clients,
+    rejectionsData,
+    searchParams.get("sla") || "channels",
+  );
 
   return (
     <>
@@ -118,6 +85,36 @@ const RegistrationsReport = () => {
             </div>
           </div>
         </div>
+        {/* Nueva tarjeta para Tasa de Rechazos */}
+        <div className="bg-white p-6 rounded-xl shadow-sm">
+          <div className="flex justify-between items-start">
+            <p className="text-sm">Tasa de Rechazos</p>
+            <Ban className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Tasa de Rechazo (%)</span>
+              <span className="font-medium">
+                {stats.rejections.rejectionRate.toFixed(2)}%
+              </span>
+            </div>
+
+            {/* Motivos de rechazo */}
+            <div>
+              <p className="text-sm text-gray-600">Motivos de Rechazo</p>
+              <ul className="mt-2 space-y-1">
+                {Object.entries(stats.rejections.reasons).map(
+                  ([reason, count]) => (
+                    <li key={reason} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{reason}</span>
+                      <span className="font-medium">{count as number}</span>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm">
           <div className="flex justify-between items-start">
@@ -135,6 +132,9 @@ const RegistrationsReport = () => {
             ))}
           </ul>
         </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SLAReport data={stats.sla} />
       </div>
     </>
   );

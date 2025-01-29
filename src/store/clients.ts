@@ -2,24 +2,23 @@ import { create } from "zustand";
 import {
   getClients,
   getClientsStats,
+  getRejectionsStats,
   rejectClient,
   sendEmailUser,
 } from "@/data/clients";
-import { ChannelType, IOrder, PaymentStatus } from "@/types/client";
+import {
+  IOrder,
+  OrderAnalitycs,
+  PaymentStatus,
+  RejectionAnalitycs,
+} from "@/types/client";
 import supabase from "@/data/supabase";
 import { successRegister, successRegisterBusiness } from "@/assets/mails";
 
 interface ClientState {
   clients: IOrder[];
-  analitycsClients: {
-    rut: string;
-    is_business: boolean;
-    registered: boolean;
-    total_paid: number;
-    created_at: string;
-    channel: ChannelType;
-    paid: PaymentStatus;
-  }[];
+  analitycsClients: OrderAnalitycs[];
+  analitycsRejections: RejectionAnalitycs[];
   totalClients: number;
   currentPage: number;
   totalPages: number;
@@ -56,6 +55,7 @@ interface ClientState {
 const useClientStore = create<ClientState>((set, get) => ({
   clients: [],
   analitycsClients: [],
+  analitycsRejections: [],
   totalClients: 0,
   currentPage: 1,
   totalPages: 1,
@@ -92,11 +92,17 @@ const useClientStore = create<ClientState>((set, get) => ({
   fetchAnalitycsClients: async (channel, filters) => {
     try {
       set({ loading: true, error: null });
-      const result = await getClientsStats(channel || "base", filters);
+      const clientsResult = await getClientsStats(channel || "base", filters);
+      const rejectionsResult = await getRejectionsStats(filters);
 
-      if (result) {
+      if (clientsResult) {
         set({
-          analitycsClients: result,
+          analitycsClients: clientsResult,
+        });
+      }
+      if (rejectionsResult) {
+        set({
+          analitycsRejections: rejectionsResult,
         });
       }
     } catch (error) {

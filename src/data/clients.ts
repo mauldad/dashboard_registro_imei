@@ -1,5 +1,11 @@
 import onboardingUrl from "@/utils/onboarding-url";
-import { ChannelType, IOrder, PaymentStatus } from "../types/client";
+import {
+  ChannelType,
+  IOrder,
+  OrderAnalitycs,
+  PaymentStatus,
+  RejectionAnalitycs,
+} from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
 import { rejectedRegister, rejectedRegisterBusiness } from "@/assets/mails";
@@ -153,17 +159,7 @@ export interface ClientStatsFilters {
 export async function getClientsStats(
   channel: string,
   filters?: ClientStatsFilters,
-): Promise<
-  {
-    is_business: boolean;
-    rut: string;
-    registered: boolean;
-    total_paid: number;
-    paid: PaymentStatus;
-    channel: ChannelType;
-    created_at: string;
-  }[]
-> {
+): Promise<OrderAnalitycs[]> {
   try {
     const queryBuilder = supabase
       .from("Order")
@@ -174,6 +170,7 @@ export async function getClientsStats(
         channel,
         total_paid,
         paid,
+        registered_at,
         created_at
       `,
       )
@@ -212,6 +209,7 @@ export async function getClientsStats(
       channel: item.channel,
       total_paid: item.total_paid,
       paid: item.paid,
+      registered_at: item.registered_at,
       created_at: item.created_at,
     }));
 
@@ -219,6 +217,55 @@ export async function getClientsStats(
   } catch (error) {
     console.error("Get All Clients Error:", error);
     throw new Error("Get all clients failed");
+  }
+}
+
+export async function getRejectionsStats(
+  filters?: ClientStatsFilters,
+): Promise<RejectionAnalitycs[]> {
+  try {
+    const queryBuilder = supabase.from("Rejection").select(
+      `
+        reason,
+        created_at,
+        resolved_at,
+        resolved
+      `,
+    );
+
+    if (filters) {
+      if (filters.month && filters.year) {
+        const startDate = `${filters.year}-${filters.month}-01`;
+        const endDate = new Date(
+          parseInt(filters.year),
+          parseInt(filters.month),
+          0,
+        ).toISOString();
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      } else if (filters.year) {
+        const startDate = `${filters.year}-01-01`;
+        const endDate = `${filters.year}-12-31`;
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      }
+    }
+
+    const { data, error } = await queryBuilder;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const processedData = data.map((item) => ({
+      reason: item.reason,
+      created_at: item.created_at,
+      resolved_at: item.resolved_at,
+      resolved: item.resolved,
+    }));
+
+    return processedData;
+  } catch (error) {
+    console.error("Get All Rejections Error:", error);
+    throw new Error("Get all Rejections failed");
   }
 }
 
@@ -258,7 +305,7 @@ const transformToPersonalUser = (formData: IOrder) => {
     p_paid: formData.paid,
     p_first_name: formData.Account?.Personal?.first_name,
     p_last_name: formData.Account?.Personal?.last_name,
-    p_phone_number: formData.Account?.Personal?.phone_number,
+    p_phone_number: formData.phone_number,
     p_nationality: formData.Account?.Personal?.nationality,
     p_has_antivirus: formData.has_antivirus,
     p_has_insurance: formData.has_insurance,

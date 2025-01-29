@@ -79,3 +79,21 @@ interface IPersonal {
   nationality: string;
   id_card_url: string;
 }
+
+export interface OrderAnalitycs {
+  rut: string;
+  is_business: boolean;
+  registered: boolean;
+  total_paid: number;
+  registered_at: string | null;
+  created_at: string;
+  channel: ChannelType;
+  paid: PaymentStatus;
+}
+
+export interface RejectionAnalitycs {
+  reason: string;
+  created_at: string;
+  resolved_at: string;
+  resolved: boolean;
+}
