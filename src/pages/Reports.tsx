@@ -55,6 +55,7 @@ const Reports = () => {
 
         <TabsContent value="incomes" className="space-y-2">
           <IncomesReport />
+          <ExportData />
         </TabsContent>
         <TabsContent value="registrations" className="space-y-2">
           <RegistrationsReport />
