@@ -2,21 +2,23 @@ import { create } from "zustand";
 import {
   getClients,
   getClientsStats,
+  getRejectionsStats,
   rejectClient,
   sendEmailUser,
-} from "../data/clients";
-import { IOrder, PaymentStatus } from "../types/client";
-import supabase from "../data/supabase";
-import { successRegister, successRegisterBusiness } from "../assets/mails";
+} from "@/data/clients";
+import {
+  IOrder,
+  OrderAnalitycs,
+  PaymentStatus,
+  RejectionAnalitycs,
+} from "@/types/client";
+import supabase from "@/data/supabase";
+import { successRegister, successRegisterBusiness } from "@/assets/mails";
 
 interface ClientState {
   clients: IOrder[];
-  analitycsClients: {
-    is_business: boolean;
-    registered: boolean;
-    total_paid: number;
-    created_at: string;
-  }[];
+  analitycsClients: OrderAnalitycs[];
+  analitycsRejections: RejectionAnalitycs[];
   totalClients: number;
   currentPage: number;
   totalPages: number;
@@ -37,7 +39,10 @@ interface ClientState {
     page?: number;
     limit?: number;
   }) => Promise<void>;
-  fetchAnalitycsClients: (channel: string) => Promise<void>;
+  fetchAnalitycsClients: (
+    channel: string,
+    filters?: { month?: string; year?: string },
+  ) => Promise<void>;
   updateRegisterStatus: (id: number) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;
   rejectClient: (
@@ -50,6 +55,7 @@ interface ClientState {
 const useClientStore = create<ClientState>((set, get) => ({
   clients: [],
   analitycsClients: [],
+  analitycsRejections: [],
   totalClients: 0,
   currentPage: 1,
   totalPages: 1,
@@ -83,14 +89,20 @@ const useClientStore = create<ClientState>((set, get) => ({
       set({ loading: false });
     }
   },
-  fetchAnalitycsClients: async (channel) => {
+  fetchAnalitycsClients: async (channel, filters) => {
     try {
       set({ loading: true, error: null });
-      const result = await getClientsStats(channel || "base");
+      const clientsResult = await getClientsStats(channel || "base", filters);
+      const rejectionsResult = await getRejectionsStats(filters);
 
-      if (result) {
+      if (clientsResult) {
         set({
-          analitycsClients: result,
+          analitycsClients: clientsResult,
+        });
+      }
+      if (rejectionsResult) {
+        set({
+          analitycsRejections: rejectionsResult,
         });
       }
     } catch (error) {
