@@ -76,7 +76,7 @@ export async function getClients({
           imei_image,
           type
         ),
-        Account (
+        Account!inner (
           id,
           rut,
           is_business,
@@ -102,10 +102,18 @@ export async function getClients({
     }
 
     // Apply search query if provided
+
     if (query) {
-      queryBuilder.or(
-        `Account.rut.ilike.%${query}%,Account.Personal.first_name.ilike.%${query}%,Account.Personal.last_name.ilike.%${query}%,Account.Business.business_name.ilike.%${query}%,Imei.imei_number.ilike.%${query}%`,
-      );
+      queryBuilder.or(`rut.ilike.%${query}%`, { referencedTable: "Account" });
+
+      // queryBuilder.or(
+      //   `first_name.ilike.%${query}%,last_name.ilike.%${query}%`,
+      //   { foreignTable: "Account.Personal" },
+      // );
+      // queryBuilder.or(`business_name.ilike.%${query}%`, {
+      //   foreignTable: "Account.Business",
+      // });
+      // queryBuilder.or(`imei_number.ilike.${query}`, { foreignTable: "Imei" });
     }
 
     // Apply filters if provided
