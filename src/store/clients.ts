@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import {
+  deleteClient,
   getClients,
   getClientsStats,
   getRejectionsStats,
@@ -49,7 +50,7 @@ interface ClientState {
     rejectedClient: IOrder,
     formData: { reason: string; fields: string[] },
   ) => Promise<void>;
-  deleteUser: (id: number, token: string) => Promise<void>;
+  deleteClient: (id: number) => Promise<void>;
 }
 
 const useClientStore = create<ClientState>((set, get) => ({
@@ -176,12 +177,10 @@ const useClientStore = create<ClientState>((set, get) => ({
     });
     set({ clients: newClients });
   },
-  deleteUser: async (id: number, token: string) => {
-    const { data, error } = await supabase.rpc("delete_user", {
-      p_account_id: id,
-    });
+  deleteClient: async (id: number) => {
+    await deleteClient(id);
     const newClients = get().clients.filter((client) => {
-      return client.Account?.id !== id;
+      return client.id !== id;
     });
     set({ clients: newClients });
   },

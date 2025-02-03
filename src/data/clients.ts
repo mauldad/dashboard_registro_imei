@@ -560,3 +560,9 @@ const sendRejectedEmail = async (
         ),
   );
 };
+
+export const deleteClient = async (id: number) => {
+  const { data, error } = await supabase.from("Order").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return data;
+};
