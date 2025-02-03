@@ -104,7 +104,7 @@ export async function getClients({
     // Apply search query if provided
 
     if (query) {
-      queryBuilder.or(`rut.ilike.%${query}%`, { referencedTable: "Account" });
+      queryBuilder.or(`order_number.ilike.%${query}%`);
 
       // queryBuilder.or(
       //   `first_name.ilike.%${query}%,last_name.ilike.%${query}%`,
