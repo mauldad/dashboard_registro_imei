@@ -21,7 +21,6 @@ interface UserState {
   }) => Promise<void>;
   insertUser: (createdUser: User) => void;
   updateUser: (updatedUser: User) => void;
-  deleteUser: (id: number, token: string) => Promise<void>;
 }
 
 const useUserStore = create<UserState>((set, get) => ({
@@ -69,15 +68,6 @@ const useUserStore = create<UserState>((set, get) => ({
         return updatedUser;
       }
       return user;
-    });
-    set({ users: newUsers });
-  },
-  deleteUser: async (id: number, token: string) => {
-    const { data, error } = await supabase.rpc("delete_user", {
-      p_account_id: id,
-    });
-    const newUsers = get().users.filter((user) => {
-      return user.Account?.id !== id;
     });
     set({ users: newUsers });
   },

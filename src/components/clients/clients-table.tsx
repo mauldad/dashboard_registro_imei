@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 import useClientStore from "@/store/clients";
+import DeleteForm from "./confirm-delete";
 
 interface ClientsTableProps {
   orders: IOrder[];
@@ -266,6 +267,7 @@ const ClientsTable = ({
                         </Button>
                         <ClientForm key={order.id} order={order} />
                         <RejectForm order={order} />
+                        {token.is_admin && <DeleteForm order={order} />}
                         <span
                           className="hidden"
                           id={`details-trigger-${order.id}`}
