@@ -1,11 +1,5 @@
 import onboardingUrl from "@/utils/onboarding-url";
-import {
-  ChannelType,
-  IOrder,
-  OrderAnalitycs,
-  PaymentStatus,
-  RejectionAnalitycs,
-} from "../types/client";
+import { IOrder, OrderAnalitycs, RejectionAnalitycs } from "../types/client";
 import supabase from "./supabase";
 import { v4 as uuidv4 } from "uuid";
 import { rejectedRegister, rejectedRegisterBusiness } from "@/assets/mails";
@@ -16,6 +10,7 @@ import {
 
 export interface ClientFilters {
   month?: string;
+  year?: string;
   channel?: string;
   type?: string;
   payment?: string;
@@ -48,52 +43,8 @@ export async function getClients({
 > {
   try {
     const queryBuilder = supabase
-      .from("Order")
-      .select(
-        `
-        id,
-        order_number,
-        total_paid,
-        paid,
-        imei_excel_url,
-        created_at,
-        has_registration,
-        has_antivirus,
-        has_insurance,
-        registered,
-        purchase_receipt_url,
-        import_receipt_url,
-        registrant_name,
-        email,
-        phone_number,
-        channel,
-        purchase_number,
-        reject_reason,
-        Imei (
-          imei_number,
-          brand,
-          model,
-          imei_image,
-          type
-        ),
-        Account!inner (
-          id,
-          rut,
-          is_business,
-          Personal (
-            first_name,
-            last_name,
-            nationality,
-            id_card_url
-          ),
-          Business (
-            business_name
-          )
-        )
-      `,
-        { count: "exact" },
-      )
-      .not("Account", "is", null)
+      .from("order_view")
+      .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
 
     // Apply base channel filter
@@ -102,30 +53,30 @@ export async function getClients({
     }
 
     // Apply search query if provided
-
     if (query) {
-      queryBuilder.or(`order_number.ilike.%${query}%`);
-
-      // queryBuilder.or(
-      //   `first_name.ilike.%${query}%,last_name.ilike.%${query}%`,
-      //   { foreignTable: "Account.Personal" },
-      // );
-      // queryBuilder.or(`business_name.ilike.%${query}%`, {
-      //   foreignTable: "Account.Business",
-      // });
-      // queryBuilder.or(`imei_number.ilike.${query}`, { foreignTable: "Imei" });
+      queryBuilder.or(`order_number.ilike.%${query}%,rut.ilike.%${query}%`);
     }
 
     // Apply filters if provided
     if (filters) {
-      if (filters.month) {
-        queryBuilder.ilike("created_at", `${filters.month}%`);
+      if (filters.month && filters.year) {
+        const startDate = `${filters.year}-${filters.month}-01`;
+        const endDate = new Date(
+          parseInt(filters.year),
+          parseInt(filters.month),
+          0,
+        ).toISOString();
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      } else if (filters.year) {
+        const startDate = `${filters.year}-01-01`;
+        const endDate = `${filters.year}-12-31`;
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
       }
       if (filters.channel && channel === "base") {
         queryBuilder.eq("channel", filters.channel);
       }
       if (filters.type) {
-        queryBuilder.eq("Account.is_business", filters.type === "business");
+        queryBuilder.eq("is_business", filters.type === "business");
       }
       if (filters.payment) {
         queryBuilder.eq("paid", filters.payment);
@@ -145,9 +96,54 @@ export async function getClients({
     if (error) {
       throw new Error(error.message);
     }
+    const formattedData: IOrder[] = data.map((order) => ({
+      id: order.id,
+      order_number: order.order_number,
+      total_paid: order.total_paid,
+      paid: order.paid,
+      imei_excel_url: order.imei_excel_url,
+      created_at: order.created_at,
+      has_registration: order.has_registration,
+      has_antivirus: order.has_antivirus,
+      has_insurance: order.has_insurance,
+      registered: order.registered,
+      import_receipt_url: order.import_receipt_url,
+      purchase_receipt_url: order.purchase_receipt_url,
+      registrant_name: order.registrant_name,
+      email: order.email,
+      phone_number: order.phone_number,
+      channel: order.channel,
+      purchase_number: order.purchase_number || undefined,
+      reject_reason: order.reject_reason,
+      Imei: order.imei.map((imei: any) => ({
+        imei_number: imei.imei_number,
+        brand: imei.brand,
+        type: imei.type,
+        model: imei.model,
+        imei_image: imei.imei_image,
+      })),
+      Account: order.account_id
+        ? {
+            id: order.account_id,
+            rut: order.rut,
+            is_business: order.is_business,
+            Business: order.business
+              ? { business_name: order.business.business_name }
+              : null,
+            Personal: order.personal
+              ? {
+                  first_name: order.personal.first_name,
+                  last_name: order.personal.last_name,
+                  nationality: order.personal.nationality,
+                  id_card_url: order.personal.id_card_url,
+                }
+              : null,
+          }
+        : null,
+    }));
 
     return {
-      data,
+      data: formattedData,
       count,
       page,
       limit,

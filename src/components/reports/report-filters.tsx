@@ -43,8 +43,8 @@ const ReportFilters = () => {
 
   const years = useMemo(
     () =>
-      Array.from({ length: 3 }, (_, i) =>
-        (new Date().getFullYear() - i).toString(),
+      Array.from({ length: new Date().getFullYear() - 2024 + 1 }, (_, i) =>
+        (2024 + i).toString(),
       ),
     [],
   );

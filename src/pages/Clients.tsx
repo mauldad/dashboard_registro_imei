@@ -34,6 +34,7 @@ const Clients = () => {
         query: searchParams.get("query") || undefined,
         filters: {
           month: searchParams.get("month") || undefined,
+          year: searchParams.get("year") || undefined,
           channel: searchParams.get("channel") || undefined,
           type: searchParams.get("type") || undefined,
           payment: searchParams.get("payment") || undefined,
