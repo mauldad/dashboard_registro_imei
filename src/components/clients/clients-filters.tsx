@@ -8,25 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { useMemo } from "react";
 
 interface ClientsFiltersProps {
   channel: string;
 }
-
-const months = [
-  { value: "01", label: "Enero" },
-  { value: "02", label: "Febrero" },
-  { value: "03", label: "Marzo" },
-  { value: "04", label: "Abril" },
-  { value: "05", label: "Mayo" },
-  { value: "06", label: "Junio" },
-  { value: "07", label: "Julio" },
-  { value: "08", label: "Agosto" },
-  { value: "09", label: "Septiembre" },
-  { value: "10", label: "Octubre" },
-  { value: "11", label: "Noviembre" },
-  { value: "12", label: "Diciembre" },
-];
 
 export function ClientsFilters({ channel }: ClientsFiltersProps) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,6 +28,23 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
     }
     setSearchParams(params);
   };
+
+  const years = useMemo(
+    () =>
+      Array.from({ length: new Date().getFullYear() - 2024 + 1 }, (_, i) => ({
+        value: (2024 + i).toString(),
+        label: (2024 + i).toString(),
+      })),
+    [],
+  );
+  const months = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => ({
+        value: (i + 1).toString().padStart(2, "0"),
+        label: format(new Date(2024, i, 1), "MMMM", { locale: es }),
+      })),
+    [],
+  );
 
   return (
     <section className="pb-4 flex justify-between">
@@ -71,6 +76,25 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
               {months.map((month) => (
                 <SelectItem key={month.value} value={month.value}>
                   {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-1 2xl:gap-2 pl-3 pr-0 border rounded-lg bg-white">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <Select
+            defaultValue={searchParams.get("year") || "all"}
+            onValueChange={(value) => handleParamChange("year", value)}
+          >
+            <SelectTrigger className="w-[160px] border-0 shadow-none focus:ring-0">
+              <SelectValue placeholder="Seleccionar mes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los años</SelectItem>
+              {years.map((year) => (
+                <SelectItem key={year.value} value={year.value}>
+                  {year.label}
                 </SelectItem>
               ))}
             </SelectContent>
