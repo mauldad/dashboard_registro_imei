@@ -28,7 +28,7 @@ export function ClientsSearch() {
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar por número de orden..."
+        placeholder="Buscar por número de orden o RUT..."
         className="pl-10 pr-4 py-2 border rounded-lg text-sm w-80"
       />
     </section>
