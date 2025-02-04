@@ -101,7 +101,6 @@ const getRejectionsStats = (
     acc[rejection.reason] = (acc[rejection.reason] || 0) + 1;
     return acc;
   }, {});
-  console.log(rejections);
   const totalRejections = rejections.length;
   const rejectionRate = (totalRejections / totalOrders) * 100;
 
