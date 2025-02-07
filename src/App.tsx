@@ -44,9 +44,15 @@ function App() {
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/clients" element={<Clients />} />
-                      <Route path="/reports" element={<Reports />} />
+                      <Route
+                        path="/reports"
+                        element={
+                          <ProtectedRoute isAllowed={token?.is_admin || false}>
+                            <Reports />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route path="/settings" element={<Settings />} />
-
                       <Route
                         path="/users"
                         element={
