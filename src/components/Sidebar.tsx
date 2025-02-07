@@ -29,6 +29,7 @@ const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { removeToken, token } = useAuthStore((state) => state);
+  const adminPaths = ["/users", "/reports"];
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -37,7 +38,7 @@ const Sidebar = ({
     { icon: Settings, label: "Configuración", path: "/settings" },
     { icon: UserCog, label: "Usuarios", path: "/users" },
   ].filter((item) => {
-    if (item.path === "/users" && !token?.is_admin) {
+    if (adminPaths.includes(item.path) && !token?.is_admin) {
       return false;
     }
     return true;
