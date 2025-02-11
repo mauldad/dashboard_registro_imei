@@ -33,15 +33,10 @@ export default async (req: Request, context: Context) => {
       SECRET_KEY,
       { expiresIn: decoded.exp - now },
     );
-    const cookie = `auth_jwt=${signedToken}; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=${
-      decoded.exp - now
-    }`;
+    const redirectUrl = `${ONBOARDING_URL}/internal-form?token=${signedToken}`;
 
-    return new Response(JSON.stringify({ location: ONBOARDING_URL }), {
+    return new Response(JSON.stringify({ location: redirectUrl }), {
       status: 200,
-      headers: {
-        "Set-Cookie": cookie,
-      },
     });
   } catch (error) {
     console.error(error);
