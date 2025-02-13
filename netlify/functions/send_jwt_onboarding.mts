@@ -6,6 +6,17 @@ const ONBOARDING_URL = process.env.VITE_ONBOARDING_URL as string;
 
 export default async (req: Request, context: Context) => {
   try {
+    const body = await req.json();
+    const { next } = body;
+    if (!next) {
+      return new Response(
+        JSON.stringify({ error: "URL de redireccion no proporcionada" }),
+        {
+          status: 400,
+        },
+      );
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Token no proporcionado" }), {
@@ -33,7 +44,7 @@ export default async (req: Request, context: Context) => {
       SECRET_KEY,
       { expiresIn: decoded.exp - now },
     );
-    const redirectUrl = `${ONBOARDING_URL}/internal-form?token=${signedToken}`;
+    const redirectUrl = `${ONBOARDING_URL}/internal-form?token=${signedToken}&next=${next}`;
 
     return new Response(JSON.stringify({ location: redirectUrl }), {
       status: 200,

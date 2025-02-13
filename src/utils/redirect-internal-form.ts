@@ -5,11 +5,16 @@ export const redirectInternalForm = async () => {
     const {
       data: { session },
     } = await supabase.auth.getSession();
+
+    const body = {
+      next: window.location.href,
+    };
     const response = await fetch("/.netlify/functions/send_jwt_onboarding", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${session?.access_token}`,
       },
+      body: JSON.stringify(body),
       credentials: "include",
     });
 
