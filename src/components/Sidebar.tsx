@@ -97,18 +97,20 @@ const Sidebar = ({
             {!isCollapsed && <span className="font-medium">{item.label}</span>}
           </button>
         ))}
-        <button
-          onClick={() => {
-            redirectInternalForm();
-          }}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 mt-8"
-          title={isCollapsed ? "Formulario Interno" : undefined}
-        >
-          <BookUser className="w-5 h-5 flex-shrink-0" />
-          {!isCollapsed && (
-            <span className="font-medium">Formulario Interno</span>
-          )}
-        </button>
+        {token?.is_operator && (
+          <button
+            onClick={() => {
+              redirectInternalForm();
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 mt-8"
+            title={isCollapsed ? "Formulario Interno" : undefined}
+          >
+            <BookUser className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="font-medium">Formulario Interno</span>
+            )}
+          </button>
+        )}
         <button
           onClick={() => {
             removeToken();
