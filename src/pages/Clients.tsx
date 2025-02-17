@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Download, Users } from "lucide-react";
+import { Download, Loader2, Users } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ClientsTable from "@/components/clients/clients-table";
-import { exportToExcel } from "@/utils/export";
 import useClientStore from "@/store/clients";
 import ClientsTableSkeleton from "@/components/skeletons/client-table-skeleton";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
@@ -24,6 +23,8 @@ const Clients = () => {
     currentPage,
     totalPages,
     pageSize,
+    exportClientsExcel,
+    loadingExport,
   } = useClientStore((state) => state);
 
   useEffect(() => {
@@ -103,13 +104,26 @@ const Clients = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={() =>
-              exportToExcel(clients, "clientes-export", token.channel)
+            onClick={async () =>
+              await exportClientsExcel(
+                "clientes-export",
+                token.channel,
+                token.is_admin,
+              )
             }
-            disabled={loading}
+            disabled={loadingExport || loading}
           >
-            <Download size={20} />
-            Exportar Listado
+            {loadingExport ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                Exportando...
+              </>
+            ) : (
+              <>
+                <Download size={20} />
+                Exportar Planilla
+              </>
+            )}
           </Button>
           <ClientsSearch />
         </div>

@@ -4,12 +4,12 @@ import {
   Building2,
   CheckCircle,
   Download,
+  Loader2,
   Users,
   XCircle,
 } from "lucide-react";
 import ClientsTable from "@/components/clients/clients-table";
 import AnalyticsChart from "../components/AnalyticsChart";
-import { exportToExcel } from "../utils/export";
 import useClientStore from "../store/clients";
 import ClientsTableSkeleton from "../components/skeletons/client-table-skeleton";
 import useAuthStore, { UserPermissionsToken } from "../store/auth";
@@ -31,6 +31,8 @@ const Dashboard = () => {
     currentPage,
     totalPages,
     pageSize,
+    exportClientsExcel,
+    loadingExport,
   } = useClientStore((state) => state);
 
   useEffect(() => {
@@ -150,19 +152,27 @@ const Dashboard = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
-          onClick={() =>
-            exportToExcel(
-              clients,
-              "dashboard-export",
+          onClick={async () =>
+            await exportClientsExcel(
+              "clientes-export",
               token.channel,
               token.is_admin,
             )
           }
-          disabled={loading}
+          disabled={loadingExport || loading}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
         >
-          <Download size={20} />
-          Exportar Planilla
+          {loadingExport ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              Exportando...
+            </>
+          ) : (
+            <>
+              <Download size={20} />
+              Exportar Planilla
+            </>
+          )}
         </button>
       </div>
 

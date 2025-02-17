@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Calendar, Download } from "lucide-react";
+import { Calendar, Download, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { exportToExcel } from "@/utils/export";
 import useClientStore from "@/store/clients";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
+import { getAllClients } from "@/data/clients";
 
 const ExportData = () => {
   const [timeRange, setTimeRange] = useState("month");
@@ -14,7 +15,8 @@ const ExportData = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "MM"));
   const [selectedQuarter, setSelectedQuarter] = useState("1");
   const [selectedSemester, setSelectedSemester] = useState("1");
-  const { loading } = useClientStore((state) => state);
+  const { loading, loadingExport, setLoadingExport, setErrorExport } =
+    useClientStore((state) => state);
 
   const token = useAuthStore((state) => state.token) as UserPermissionsToken;
 
@@ -40,50 +42,58 @@ const ExportData = () => {
     { value: "2", label: "Segundo Semestre (Jul - Dic)" },
   ];
 
-  const handleExport = () => {
-    let filteredData = [...clients];
-    let reportName = "reporte";
+  const handleExport = async () => {
+    try {
+      setErrorExport(null);
+      setLoadingExport(true);
+      let filteredData = await getAllClients();
+      let reportName = "reporte";
 
-    switch (timeRange) {
-      case "month":
-        reportName = `reporte-${selectedYear}-${selectedMonth}`;
-        filteredData = clients.filter((client) =>
-          client.created_at.startsWith(`${selectedYear}-${selectedMonth}`),
-        );
-        break;
-      case "quarter":
-        const quarterMonth = (parseInt(selectedQuarter) - 1) * 3;
-        reportName = `reporte-${selectedYear}-T${selectedQuarter}`;
-        filteredData = clients.filter((client) => {
-          const month = parseInt(client.created_at.split("-")[1]);
-          return (
-            client.created_at.startsWith(selectedYear) &&
-            month >= quarterMonth + 1 &&
-            month <= quarterMonth + 3
+      switch (timeRange) {
+        case "month":
+          reportName = `reporte-${selectedYear}-${selectedMonth}`;
+          filteredData = filteredData.filter((client) =>
+            client.created_at.startsWith(`${selectedYear}-${selectedMonth}`),
           );
-        });
-        break;
-      case "semester":
-        const semesterMonth = (parseInt(selectedSemester) - 1) * 6;
-        reportName = `reporte-${selectedYear}-S${selectedSemester}`;
-        filteredData = clients.filter((client) => {
-          const month = parseInt(client.created_at.split("-")[1]);
-          return (
-            client.created_at.startsWith(selectedYear) &&
-            month >= semesterMonth + 1 &&
-            month <= semesterMonth + 6
+          break;
+        case "quarter":
+          const quarterMonth = (parseInt(selectedQuarter) - 1) * 3;
+          reportName = `reporte-${selectedYear}-T${selectedQuarter}`;
+          filteredData = filteredData.filter((client) => {
+            const month = parseInt(client.created_at.split("-")[1]);
+            return (
+              client.created_at.startsWith(selectedYear) &&
+              month >= quarterMonth + 1 &&
+              month <= quarterMonth + 3
+            );
+          });
+          break;
+        case "semester":
+          const semesterMonth = (parseInt(selectedSemester) - 1) * 6;
+          reportName = `reporte-${selectedYear}-S${selectedSemester}`;
+          filteredData = filteredData.filter((client) => {
+            const month = parseInt(client.created_at.split("-")[1]);
+            return (
+              client.created_at.startsWith(selectedYear) &&
+              month >= semesterMonth + 1 &&
+              month <= semesterMonth + 6
+            );
+          });
+          break;
+        case "year":
+          reportName = `reporte-${selectedYear}`;
+          filteredData = filteredData.filter((client) =>
+            client.created_at.startsWith(selectedYear),
           );
-        });
-        break;
-      case "year":
-        reportName = `reporte-${selectedYear}`;
-        filteredData = clients.filter((client) =>
-          client.created_at.startsWith(selectedYear),
-        );
-        break;
+          break;
+      }
+
+      exportToExcel(filteredData, reportName, token.channel, token.is_admin);
+    } catch (error) {
+      setErrorExport((error as Error).message);
+    } finally {
+      setLoadingExport(false);
     }
-
-    exportToExcel(filteredData, reportName, token.channel, token.is_admin);
   };
 
   return (
@@ -208,12 +218,21 @@ const ExportData = () => {
         )}
 
         <button
-          disabled={loading}
+          disabled={loading || loadingExport}
           onClick={handleExport}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
         >
-          <Download size={20} />
-          Exportar Reporte
+          {loadingExport ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              Exportando...
+            </>
+          ) : (
+            <>
+              <Download size={20} />
+              Exportar Planilla
+            </>
+          )}
         </button>
       </div>
     </div>
