@@ -32,13 +32,16 @@ export const exportToExcel = (
     WhatsApp: client.phone_number,
     "Registro IMEI": client.has_registration ? "Sí" : "No",
     "Antivirus Premium": client.has_antivirus ? "Sí" : "No",
-    ...(channel === "base" &&
-      isAdmin && {
-        "Total Pagado": client.total_paid.toLocaleString("es-CL", {
-          style: "currency",
-          currency: "CLP",
+    ...(channel === "base"
+      ? isAdmin && {
+          "Total Pagado": client.total_paid.toLocaleString("es-CL", {
+            style: "currency",
+            currency: "CLP",
+          }),
+        }
+      : {
+          "Numero de Orden": client.purchase_number,
         }),
-      }),
     "Estado Registro": client.registered ? "Registrado" : "En Espera",
     "Estado Pago": paidEnum[client.paid],
     "Fecha Pago": client.created_at,

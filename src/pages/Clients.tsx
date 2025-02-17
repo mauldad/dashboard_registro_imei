@@ -104,7 +104,12 @@ const Clients = () => {
           <Button
             variant="outline"
             onClick={() =>
-              exportToExcel(clients, "clientes-export", token.channel)
+              exportToExcel(
+                clients,
+                "clientes-export",
+                token.channel,
+                token.is_admin,
+              )
             }
             disabled={loading}
           >
