@@ -8,6 +8,54 @@ import {
   generateRejectedTokenPersonal,
 } from "@/utils/generate-rejected-token";
 
+function formatClientsData(data: any): IOrder[] {
+  return data.map((order: any) => ({
+    id: order.id,
+    order_number: order.order_number,
+    total_paid: order.total_paid,
+    paid: order.paid,
+    imei_excel_url: order.imei_excel_url,
+    created_at: order.created_at,
+    has_registration: order.has_registration,
+    has_antivirus: order.has_antivirus,
+    has_insurance: order.has_insurance,
+    registered: order.registered,
+    import_receipt_url: order.import_receipt_url,
+    purchase_receipt_url: order.purchase_receipt_url,
+    registrant_name: order.registrant_name,
+    email: order.email,
+    phone_number: order.phone_number,
+    channel: order.channel,
+    purchase_number: order.purchase_number || undefined,
+    reject_reason: order.reject_reason,
+    Imei: order.imei.map((imei: any) => ({
+      imei_number: imei.imei_number,
+      brand: imei.brand,
+      type: imei.type,
+      model: imei.model,
+      imei_image: imei.imei_image,
+    })),
+    Account: order.account_id
+      ? {
+          id: order.account_id,
+          rut: order.rut,
+          is_business: order.is_business,
+          Business: order.business
+            ? { business_name: order.business.business_name }
+            : null,
+          Personal: order.personal
+            ? {
+                first_name: order.personal.first_name,
+                last_name: order.personal.last_name,
+                nationality: order.personal.nationality,
+                id_card_url: order.personal.id_card_url,
+              }
+            : null,
+        }
+      : null,
+  }));
+}
+
 export interface ClientFilters {
   month?: string;
   year?: string;
@@ -96,51 +144,7 @@ export async function getClients({
     if (error) {
       throw new Error(error.message);
     }
-    const formattedData: IOrder[] = data.map((order) => ({
-      id: order.id,
-      order_number: order.order_number,
-      total_paid: order.total_paid,
-      paid: order.paid,
-      imei_excel_url: order.imei_excel_url,
-      created_at: order.created_at,
-      has_registration: order.has_registration,
-      has_antivirus: order.has_antivirus,
-      has_insurance: order.has_insurance,
-      registered: order.registered,
-      import_receipt_url: order.import_receipt_url,
-      purchase_receipt_url: order.purchase_receipt_url,
-      registrant_name: order.registrant_name,
-      email: order.email,
-      phone_number: order.phone_number,
-      channel: order.channel,
-      purchase_number: order.purchase_number || undefined,
-      reject_reason: order.reject_reason,
-      Imei: order.imei.map((imei: any) => ({
-        imei_number: imei.imei_number,
-        brand: imei.brand,
-        type: imei.type,
-        model: imei.model,
-        imei_image: imei.imei_image,
-      })),
-      Account: order.account_id
-        ? {
-            id: order.account_id,
-            rut: order.rut,
-            is_business: order.is_business,
-            Business: order.business
-              ? { business_name: order.business.business_name }
-              : null,
-            Personal: order.personal
-              ? {
-                  first_name: order.personal.first_name,
-                  last_name: order.personal.last_name,
-                  nationality: order.personal.nationality,
-                  id_card_url: order.personal.id_card_url,
-                }
-              : null,
-          }
-        : null,
-    }));
+    const formattedData = formatClientsData(data);
 
     return {
       data: formattedData,
@@ -152,6 +156,24 @@ export async function getClients({
   } catch (error) {
     console.error("Get Clients Error:", error);
     throw new Error("Get clients failed");
+  }
+}
+
+export async function getAllClients(): Promise<IOrder[]> {
+  try {
+    const { data, error } = await supabase
+      .from("order_view")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    const formattedData = formatClientsData(data);
+    return formattedData;
+  } catch (error) {
+    console.error("Get All Clients Error:", error);
+    throw new Error("Get all clients failed");
   }
 }
 
