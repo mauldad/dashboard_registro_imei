@@ -128,9 +128,15 @@ const useClientStore = create<ClientState>((set, get) => ({
     }
   },
   updateRegisterStatus: async (id: number) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     const { data, error } = await supabase.rpc("update_order_register", {
       p_order_id: id,
+      p_registered_by: session?.user.id || null,
     });
+    console.log(data, error);
     const newClients = get().clients.map((client) => {
       if (client.id === id) {
         return {
