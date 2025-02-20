@@ -23,7 +23,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Clock, Copy, Dot } from "lucide-react";
+import { Check, Clock, Copy, Dot, Loader, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ClientDetails from "./client-details";
 import { IOrder } from "@/types/client";
@@ -46,6 +46,7 @@ import {
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 import useClientStore from "@/store/clients";
 import DeleteForm from "./confirm-delete";
+import { getSignedUrl } from "@/data/clients";
 
 interface ClientsTableProps {
   orders: IOrder[];
@@ -91,21 +92,44 @@ const ClientsTable = ({
   };
 
   const ImageDialog = ({ src, alt }: { src: string; alt: string }) => {
+    const [signedUrl, setSignedUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const isPdf = src.endsWith(".pdf");
 
+    const handleDialogOpen = async () => {
+      setLoading(true);
+      try {
+        const signedUrl = await getSignedUrl(src);
+        setSignedUrl(signedUrl);
+        setDialogOpen(true);
+      } catch (error) {
+        console.error("Error getting signed URL:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     return (
-      <Dialog>
+      <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
         <DialogTrigger asChild>
-          <button className="text-primary hover:underline underline-offset-2 transition-colors">
+          <button
+            className="text-primary hover:underline underline-offset-2 transition-colors"
+            onClick={handleDialogOpen}
+          >
             {isPdf ? (
-              <a
-                href={src}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-primary hover:text-primary/80"
-              >
-                {alt}
-              </a>
+              signedUrl && !loading ? (
+                <a
+                  href={signedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary hover:text-primary/80"
+                >
+                  {alt}
+                </a>
+              ) : (
+                <Loader className="animate-spin text-blue-600" size={24} />
+              )
             ) : (
               alt
             )}
@@ -116,13 +140,19 @@ const ClientsTable = ({
             <DialogHeader>
               <DialogTitle>{alt}</DialogTitle>
             </DialogHeader>
-            <div className="relative w-full max-h-[80vh] h-full">
-              <img
-                src={src}
-                alt={alt}
-                className="w-full h-full object-contain"
-              />
-            </div>
+            {signedUrl && !loading ? (
+              <div className="relative w-full max-h-[80vh] h-full">
+                <img
+                  src={signedUrl}
+                  alt={alt}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex justify-center items-center h-full ">
+                <Loader2 className="animate-spin text-blue-600" size={48} />
+              </div>
+            )}
           </DialogContent>
         )}
       </Dialog>
@@ -150,135 +180,138 @@ const ClientsTable = ({
           </TableHeader>
           <TableBody>
             {orders &&
-              orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell>
-                    <ClientDetails order={order} />
-                  </TableCell>
-                  <TableCell>{order.Account?.rut || "-"}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="truncate max-w-[270px]">
-                        {order.Account?.is_business
-                          ? order.Account.Business?.business_name
-                          : `${order.Account?.Personal?.first_name} ${order.Account?.Personal?.last_name}`}
-                      </span>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <a
-                          href={`mailto:${order.email}`}
-                          className="hover:text-primary transition-colors"
-                        >
-                          {order.email}
-                        </a>
-                        {order.phone_number && (
-                          <>
-                            <Dot />
-                            <span>{order.phone_number}</span>
-                          </>
+              orders.map((order) => {
+                return (
+                  <TableRow key={order.id}>
+                    <TableCell>
+                      <ClientDetails order={order} />
+                    </TableCell>
+                    <TableCell>{order.Account?.rut || "-"}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="truncate max-w-[270px]">
+                          {order.Account?.is_business
+                            ? order.Account.Business?.business_name
+                            : `${order.Account?.Personal?.first_name} ${order.Account?.Personal?.last_name}`}
+                        </span>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <a
+                            href={`mailto:${order.email}`}
+                            className="hover:text-primary transition-colors"
+                          >
+                            {order.email}
+                          </a>
+                          {order.phone_number && (
+                            <>
+                              <Dot />
+                              <span>{order.phone_number}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {order.import_receipt_url && (
+                          <ImageDialog
+                            src={order.import_receipt_url}
+                            alt="Importación"
+                          />
+                        )}
+                        {order.purchase_receipt_url && (
+                          <ImageDialog
+                            src={order.purchase_receipt_url}
+                            alt="Compra"
+                          />
                         )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {order.import_receipt_url && (
-                        <ImageDialog
-                          src={order.import_receipt_url}
-                          alt="Importación"
-                        />
-                      )}
-                      {order.purchase_receipt_url && (
-                        <ImageDialog
-                          src={order.purchase_receipt_url}
-                          alt="Compra"
-                        />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {order.Imei.length} IMEI{order.Imei.length !== 1 ? "s" : ""}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      defaultValue={order.registered ? "approved" : "pending"}
-                      onValueChange={() => onStatusChange(order.id)}
-                      disabled={order.paid !== "approved"}
-                    >
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="approved">
-                          <div className="flex items-center gap-1 pr-1">
-                            <Check className="h-4 w-4" />
-                            <span>Registrado</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="pending">
-                          <div className="flex text-[13px] items-center gap-1 pr-1">
-                            <Clock className="h-4 w-4" />
-                            <span>En Espera</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  {token.channel === "base" && token.is_admin && (
-                    <TableCell>
-                      ${order.total_paid.toLocaleString("es-CL")}
                     </TableCell>
-                  )}
-                  <TableCell className="pl-4">
-                    <Badge
-                      variant={
-                        order.paid === "approved"
-                          ? "outline-success"
+                    <TableCell>
+                      {order.Imei.length} IMEI
+                      {order.Imei.length !== 1 ? "s" : ""}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        defaultValue={order.registered ? "approved" : "pending"}
+                        onValueChange={() => onStatusChange(order.id)}
+                        disabled={order.paid !== "approved"}
+                      >
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="approved">
+                            <div className="flex items-center gap-1 pr-1">
+                              <Check className="h-4 w-4" />
+                              <span>Registrado</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="pending">
+                            <div className="flex text-[13px] items-center gap-1 pr-1">
+                              <Clock className="h-4 w-4" />
+                              <span>En Espera</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    {token.channel === "base" && token.is_admin && (
+                      <TableCell>
+                        ${order.total_paid.toLocaleString("es-CL")}
+                      </TableCell>
+                    )}
+                    <TableCell className="pl-4">
+                      <Badge
+                        variant={
+                          order.paid === "approved"
+                            ? "outline-success"
+                            : order.paid === "pending"
+                              ? "outline-warning"
+                              : "outline-destructive"
+                        }
+                        className="select-none"
+                      >
+                        {order.paid === "approved"
+                          ? "Aprobado"
                           : order.paid === "pending"
-                            ? "outline-warning"
-                            : "outline-destructive"
-                      }
-                      className="select-none"
-                    >
-                      {order.paid === "approved"
-                        ? "Aprobado"
-                        : order.paid === "pending"
-                          ? "Pendiente"
-                          : "Rechazado"}
-                    </Badge>
-                  </TableCell>
-                  {token.channel === "base" && (
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-7 w-7 p-1 transition-colors ${
-                            copiedOrderId === order.id.toString()
-                              ? "text-green-500"
-                              : "text-muted-foreground hover:text-primary"
-                          } hover:bg-transparent`}
-                          onClick={() => handleCopy(order)}
-                        >
-                          {copiedOrderId === order.id.toString() ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <ClientForm key={order.id} order={order} />
-                        <RejectForm order={order} />
-                        {token.is_admin && <DeleteForm order={order} />}
-                        <span
-                          className="hidden"
-                          id={`details-trigger-${order.id}`}
-                        >
-                          <ClientDetails order={order} />
-                        </span>
-                      </div>
+                            ? "Pendiente"
+                            : "Rechazado"}
+                      </Badge>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    {token.channel === "base" && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-7 w-7 p-1 transition-colors ${
+                              copiedOrderId === order.id.toString()
+                                ? "text-green-500"
+                                : "text-muted-foreground hover:text-primary"
+                            } hover:bg-transparent`}
+                            onClick={() => handleCopy(order)}
+                          >
+                            {copiedOrderId === order.id.toString() ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <ClientForm key={order.id} order={order} />
+                          <RejectForm order={order} />
+                          {token.is_admin && <DeleteForm order={order} />}
+                          <span
+                            className="hidden"
+                            id={`details-trigger-${order.id}`}
+                          >
+                            <ClientDetails order={order} />
+                          </span>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </ScrollArea>

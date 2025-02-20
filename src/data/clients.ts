@@ -444,10 +444,10 @@ export const uploadPersonalUserIdCard = async (file: File): Promise<string> => {
     );
   if (error) return "";
 
-  const { data: publicUrlData } = supabase.storage
+  const { data: signedUrlData } = await supabase.storage
     .from("imeis")
-    .getPublicUrl(uploadData.path);
-  return publicUrlData.publicUrl;
+    .createSignedUrl(uploadData.path, 60 * 60);
+  return signedUrlData?.signedUrl as string;
 };
 
 export const uploadPersonalPurchaseReceipt = async (
@@ -465,10 +465,10 @@ export const uploadPersonalPurchaseReceipt = async (
     );
   if (error) return "";
 
-  const { data: publicUrlData } = supabase.storage
+  const { data: signedUrlData } = await supabase.storage
     .from("imeis")
-    .getPublicUrl(uploadData.path);
-  return publicUrlData.publicUrl;
+    .createSignedUrl(uploadData.path, 60 * 60);
+  return signedUrlData?.signedUrl as string;
 };
 
 export const uploadBusinessImportReceipt = async (
@@ -486,10 +486,10 @@ export const uploadBusinessImportReceipt = async (
     );
   if (error) return "";
 
-  const { data: publicUrlData } = supabase.storage
+  const { data: signedUrlData } = await supabase.storage
     .from("imeis")
-    .getPublicUrl(uploadData.path);
-  return publicUrlData.publicUrl;
+    .createSignedUrl(uploadData.path, 60 * 60);
+  return signedUrlData?.signedUrl as string;
 };
 
 export const uploadImeiImage = async (file: File): Promise<string> => {
@@ -507,10 +507,10 @@ export const uploadExcelImeisFile = async (file: File) => {
     .upload(`business/excels/${uuidFile}-${timestamp}-excel${extension}`, file);
   if (error) return;
 
-  const { data: publicUrlData } = supabase.storage
+  const { data: signedUrlData } = await supabase.storage
     .from("imeis")
-    .getPublicUrl(uploadData.path);
-  return publicUrlData.publicUrl;
+    .createSignedUrl(uploadData.path, 60 * 60);
+  return signedUrlData?.signedUrl as string;
 };
 
 export const rejectClient = async (
@@ -583,4 +583,20 @@ export const deleteClient = async (id: number) => {
   const { data, error } = await supabase.from("Order").delete().eq("id", id);
   if (error) throw new Error(error.message);
   return data;
+};
+
+const formatUrl = (url: string) => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+  return url
+    .replace("public", "sign")
+    .replace(`${supabaseUrl}/storage/v1/object/sign/imeis/`, "");
+};
+
+export const getSignedUrl = async (url: string) => {
+  const formattedUrl = formatUrl(url);
+  const { data, error } = await supabase.storage
+    .from("imeis")
+    .createSignedUrl(formattedUrl, 60 * 60);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
 };
