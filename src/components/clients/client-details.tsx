@@ -34,6 +34,7 @@ import {
   FileSpreadsheet,
   FileText,
   Image as ImageIcon,
+  Loader2,
   Mail,
   Phone,
   ShieldCheck,
@@ -41,6 +42,8 @@ import {
   X,
 } from "lucide-react";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
+import { getSignedUrl } from "@/data/clients";
+import { useState } from "react";
 
 interface DetailsProps {
   order: IOrder;
@@ -60,27 +63,51 @@ const ImageDialog = ({
   alt: string;
   listItems?: ListItem[];
 }) => {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const isPdf = src.endsWith(".pdf");
 
+  const handleDialogOpen = async () => {
+    setLoading(true);
+    try {
+      const signedUrl = await getSignedUrl(src);
+      setSignedUrl(signedUrl);
+      setDialogOpen(true);
+    } catch (error) {
+      console.error("Error getting signed URL:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
       <DialogTrigger asChild>
-        <button className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+        <button
+          className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+          onClick={handleDialogOpen}
+        >
           <ImageIcon className="h-4 w-4" />
           {isPdf ? (
-            <a
-              href={src}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-primary hover:text-primary/80"
-            >
-              {alt}
-            </a>
+            signedUrl && !loading ? (
+              <a
+                href={signedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-primary hover:text-primary/80"
+              >
+                {alt}
+              </a>
+            ) : (
+              <Loader2 className="animate-spin text-blue-600" size={24} />
+            )
           ) : (
             <span>{alt}</span>
           )}
         </button>
       </DialogTrigger>
+
       {!isPdf && (
         <DialogContent className="max-w-[80vw]">
           <DialogHeader>
@@ -99,11 +126,17 @@ const ImageDialog = ({
               </div>
             )}
             <div className="flex-1 flex justify-center items-center overflow-hidden">
-              <img
-                src={src}
-                alt={alt}
-                className="max-w-full max-h-full object-contain"
-              />
+              {signedUrl && !loading ? (
+                <img
+                  src={signedUrl}
+                  alt={alt}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  <Loader2 className="animate-spin text-blue-600" size={48} />
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
