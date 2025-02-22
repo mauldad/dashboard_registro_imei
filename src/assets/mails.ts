@@ -158,6 +158,7 @@ export const successRegisterBusiness = (businessName: string) => `
 
 const personalFields = {
   rut: "RUT",
+  passportNumber: "Número de pasaporte",
   idCardUrl: "Carnet de identificación",
   firstName: "Nombres",
   lastName: "Apellidos",

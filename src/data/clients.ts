@@ -28,6 +28,7 @@ function formatClientsData(data: any): IOrder[] {
     channel: order.channel,
     purchase_number: order.purchase_number || undefined,
     reject_reason: order.reject_reason,
+    internal_form: order.internal_form,
     Imei: order.imei.map((imei: any) => ({
       imei_number: imei.imei_number,
       brand: imei.brand,
@@ -39,6 +40,7 @@ function formatClientsData(data: any): IOrder[] {
       ? {
           id: order.account_id,
           rut: order.rut,
+          passport_number: order.passport_number,
           is_business: order.is_business,
           Business: order.business
             ? { business_name: order.business.business_name }
@@ -102,7 +104,9 @@ export async function getClients({
 
     // Apply search query if provided
     if (query) {
-      queryBuilder.or(`order_number.ilike.%${query}%,rut.ilike.%${query}%`);
+      queryBuilder.or(
+        `order_number.ilike.%${query}%,rut.ilike.%${query}%,passport_number.ilike.%${query}%`,
+      );
     }
 
     // Apply filters if provided

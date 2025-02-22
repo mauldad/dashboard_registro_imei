@@ -212,10 +212,17 @@ const ClientDetails = ({ order }: DetailsProps) => {
           <div className="py-4 px-6 space-y-2">
             <h3 className="font-medium">Información General</h3>
             <div className="grid grid-cols-2 gap-2">
-              {order.Account?.rut && (
+              {order.Account?.rut ? (
                 <div className="space-y-1">
                   <span className="text-sm text-muted-foreground">RUT</span>
                   <p className="text-sm">{order.Account.rut}</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <span className="text-sm text-muted-foreground">
+                    Pasaporte
+                  </span>
+                  <p className="text-sm">{order.Account?.passport_number}</p>
                 </div>
               )}
               {order.Account?.Personal?.nationality && (
@@ -470,7 +477,12 @@ const ClientDetails = ({ order }: DetailsProps) => {
                       src={order.Account.Personal.id_card_url}
                       alt="Cédula de Identidad"
                       listItems={[
-                        { label: "RUT", value: order.Account.rut },
+                        {
+                          label: order.Account.rut ? "RUT" : "Pasaporte",
+                          value: order.Account.rut
+                            ? order.Account.rut
+                            : order.Account.passport_number,
+                        },
                         {
                           label: "Nombres",
                           value: order.Account.Personal.first_name,
