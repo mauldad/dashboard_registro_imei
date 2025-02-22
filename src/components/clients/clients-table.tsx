@@ -166,7 +166,8 @@ const ClientsTable = ({
           <TableHeader>
             <TableRow>
               <TableHead>Orden</TableHead>
-              <TableHead>RUT</TableHead>
+              <TableHead>RUT/Pasaporte</TableHead>
+              <TableHead>Documento</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Comprobante</TableHead>
               <TableHead>IMEIs</TableHead>
@@ -186,7 +187,18 @@ const ClientsTable = ({
                     <TableCell>
                       <ClientDetails order={order} />
                     </TableCell>
-                    <TableCell>{order.Account?.rut || "-"}</TableCell>
+                    <TableCell>
+                      {order.Account?.rut ||
+                        order.Account?.passport_number ||
+                        "-"}
+                    </TableCell>
+                    <TableCell>
+                      {order.Account?.rut
+                        ? "RUT"
+                        : order.Account?.passport_number
+                          ? "Pasaporte"
+                          : "-"}
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
                         <span className="truncate max-w-[270px]">

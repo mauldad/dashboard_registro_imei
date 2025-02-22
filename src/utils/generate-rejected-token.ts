@@ -8,6 +8,7 @@ export const generateRejectedTokenPersonal = async (
   const personalOrder = {
     idCardUrl: order.Account?.Personal?.id_card_url,
     rut: order.Account?.rut,
+    passportNumber: order.Account?.passport_number,
     firstName: order.Account?.Personal?.first_name,
     lastName: order.Account?.Personal?.last_name,
     nationality: order.Account?.Personal?.nationality,
