@@ -29,6 +29,12 @@ export interface Client {
 
 export type PaymentStatus = "approved" | "pending" | "rejected";
 export type ChannelType = "base" | "falabella" | "walmart";
+export type InternalFormType =
+  | "email"
+  | "phone"
+  | "in_person"
+  | "whatsapp"
+  | "social_media";
 
 export interface IOrder {
   id: number;
@@ -51,6 +57,7 @@ export interface IOrder {
   channel: string;
   purchase_number?: string;
   reject_reason: string | null;
+  internal_form: InternalFormType;
 }
 
 export interface IImei {
@@ -63,6 +70,7 @@ export interface IImei {
 
 interface IAccount {
   id: number;
+  passport_number: string;
   rut: string;
   Business: IBusiness | null;
   Personal: IPersonal | null;

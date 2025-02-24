@@ -28,7 +28,7 @@ export function UsersSearch() {
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar por RUT..."
+        placeholder="Buscar por Email..."
         className="pl-10 pr-4 py-2 border rounded-lg text-sm w-80"
       />
     </section>

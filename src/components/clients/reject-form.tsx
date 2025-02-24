@@ -51,6 +51,7 @@ interface RejectFormProps {
 
 const personalFields = [
   { label: "RUT", value: "rut" },
+  { label: "Pasaporte", value: "passportNumber" },
   { label: "Carnet de identificación", value: "idCardUrl" },
   { label: "Nombres", value: "firstName" },
   { label: "Apellidos", value: "lastName" },

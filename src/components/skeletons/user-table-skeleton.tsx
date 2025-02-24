@@ -49,14 +49,10 @@ const UsersTableSkeleton = ({ rows = 10 }) => (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Orden</TableHead>
-            <TableHead>RUT</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Comprobante</TableHead>
-            <TableHead>IMEIs</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Pago</TableHead>
-            <TableHead>Estado de Pago</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Canal</TableHead>
+            <TableHead>Operador</TableHead>
+            <TableHead>Admin</TableHead>
             <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>

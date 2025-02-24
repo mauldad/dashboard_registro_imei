@@ -23,7 +23,8 @@ export const exportToExcel = (
 
   const exportData = data.map((client, index) => ({
     ID: client.order_number,
-    RUT: client.Account?.rut,
+    RUT: client.Account?.rut || "-",
+    Pasaporte: client.Account?.passport_number || "-",
     Nombres: client.Account?.Personal?.first_name,
     Apellidos: client.Account?.Personal?.last_name,
     "Tipo Cliente": client.Account?.is_business ? "Empresa" : "Personal",
