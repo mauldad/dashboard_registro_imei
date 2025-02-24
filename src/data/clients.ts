@@ -7,6 +7,7 @@ import {
   generateRejectedTokenBusiness,
   generateRejectedTokenPersonal,
 } from "@/utils/generate-rejected-token";
+import { formatUrl } from "@/utils/format-url";
 
 function formatClientsData(data: any): IOrder[] {
   return data.map((order: any) => ({
@@ -587,13 +588,6 @@ export const deleteClient = async (id: number) => {
   const { data, error } = await supabase.from("Order").delete().eq("id", id);
   if (error) throw new Error(error.message);
   return data;
-};
-
-const formatUrl = (url: string) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-  return url
-    .replace("public", "sign")
-    .replace(`${supabaseUrl}/storage/v1/object/sign/imeis/`, "");
 };
 
 export const getSignedUrl = async (url: string) => {
