@@ -48,7 +48,7 @@ interface ClientState {
   }) => Promise<void>;
   fetchAnalitycsClients: (
     channel: string,
-    filters?: { month?: string; year?: string },
+    filters?: { month?: string; year?: string; rejection_channel?: string },
   ) => Promise<void>;
   updateRegisterStatus: (id: number) => Promise<boolean>;
   updateClient: (updatedClient: IOrder) => void;

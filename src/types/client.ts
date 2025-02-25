@@ -100,8 +100,13 @@ export interface OrderAnalitycs {
 }
 
 export interface RejectionAnalitycs {
-  reason: string;
+  fields: string[];
   created_at: string;
   resolved_at: string;
   resolved: boolean;
+}
+
+export interface RejectionRate {
+  rejectionRate: number;
+  reasons: Record<string, number>;
 }

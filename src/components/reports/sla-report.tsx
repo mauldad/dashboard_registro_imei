@@ -25,11 +25,24 @@ const SLAReport = ({ data }) => {
             {
               label: "SLA Promedio (Horas)",
               data: data.map((s) => s.avgSLA),
-              backgroundColor: ["#fa570a", "#e14e0a", "#007bff"],
+              backgroundColor: "#fa570a",
+            },
+            {
+              label: "% Cumplimiento SLA",
+              data: data.map((s) => s.complianceRate),
+              backgroundColor: "#007bff",
             },
           ],
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: "Horas / Porcentaje" },
+            },
+          },
+        },
       });
     }
 
@@ -75,7 +88,6 @@ const SLAFilter = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-300 rounded mb-2"></div>
             <div className="h-10 bg-gray-300 rounded"></div>
           </div>
         </div>

@@ -1,4 +1,8 @@
-import { OrderAnalitycs, RejectionAnalitycs } from "@/types/client";
+import {
+  OrderAnalitycs,
+  RejectionAnalitycs,
+  RejectionRate,
+} from "@/types/client";
 
 export const getRegistrationsStats = (
   filteredData: OrderAnalitycs[],
@@ -57,48 +61,71 @@ const getRegistationsSLA = (
   slaFilter: string,
 ) => {
   const slaData = {};
+  const SLA_LIMIT = 4; // 4 horas
+
   const validRecords = filteredData.filter(
     (c) => c.registered && c.registered_at,
   );
 
-  if (slaFilter === "services") {
-    validRecords.forEach(({ is_business, registered_at, created_at }) => {
+  validRecords.forEach(
+    ({ is_business, registered_at, created_at, channel }) => {
       const registeredDate = new Date(registered_at as string).getTime();
       const createdDate = new Date(created_at).getTime();
-
       const slaHours = (registeredDate - createdDate) / 3600000;
-      const key = is_business ? "Empresas" : "Personas";
-      if (!slaData[key]) slaData[key] = { total: 0, count: 0 };
+
+      const key =
+        slaFilter === "services"
+          ? is_business
+            ? "Empresas"
+            : "Personas"
+          : channel === "base"
+            ? "Registro de IMEI"
+            : channel;
+
+      if (!slaData[key]) {
+        slaData[key] = { total: 0, count: 0, metSLA: 0 };
+      }
+
       slaData[key].total += slaHours;
       slaData[key].count++;
-    });
-  } else {
-    validRecords.forEach(({ channel, registered_at, created_at }) => {
-      const registeredDate = new Date(registered_at as string).getTime();
-      const createdDate = new Date(created_at).getTime();
-
-      const slaHours = (registeredDate - createdDate) / 3600000;
-      const key = channel === "base" ? "Registro de IMEI" : channel;
-      if (!slaData[key]) slaData[key] = { total: 0, count: 0 };
-      slaData[key].total += slaHours;
-      slaData[key].count++;
-    });
-  }
+      if (slaHours <= SLA_LIMIT) slaData[key].metSLA++;
+    },
+  );
 
   const sla = Object.keys(slaData).map((key) => ({
     label: key,
     avgSLA: slaData[key].total / slaData[key].count,
+    complianceRate: (slaData[key].metSLA / slaData[key].count) * 100,
   }));
 
   return sla;
 };
 
+const fieldsMap = {
+  idCardUrl: "No subió correctamente los documentos",
+  excelImeisUrl: "No subió correctamente los documentos",
+  purchaseReceiptUrl: "No subió correctamente los documentos",
+  importReceiptUrl: "No subió correctamente los documentos",
+  rut: "Información personal inválida",
+  passportNumber: "Información personal inválida",
+  firstName: "Información personal inválida",
+  lastName: "Información personal inválida",
+  nationality: "Información personal inválida",
+  imeis: "Información de dispositivo inválida",
+  email: "Información de contacto inválida",
+  phoneNumber: "Información de contacto inválida",
+  businessName: "Información de empresa inválida",
+  registrantName: "Información de contacto inválida",
+};
+
 const getRejectionsStats = (
   rejections: RejectionAnalitycs[],
   totalOrders: number,
-) => {
-  const reasons = rejections.reduce((acc, rejection) => {
-    acc[rejection.reason] = (acc[rejection.reason] || 0) + 1;
+): RejectionRate => {
+  const fields = rejections.map((r) => r.fields).flat();
+  const reasons = fields.reduce((acc, field) => {
+    const reason = fieldsMap[field as keyof typeof fieldsMap];
+    acc[reason] = (acc[reason] || 0) + 1;
     return acc;
   }, {});
   const totalRejections = rejections.length;
