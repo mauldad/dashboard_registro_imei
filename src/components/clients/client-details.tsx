@@ -69,9 +69,11 @@ const ImageDialog = ({
   const isPdf = src.endsWith(".pdf");
 
   const handleDialogOpen = async () => {
+    if (signedUrl || loading) return;
     setLoading(true);
     try {
       const signedUrl = await getSignedUrl(src);
+      if (isPdf) window.open(signedUrl, "_blank");
       setSignedUrl(signedUrl);
       setDialogOpen(true);
     } catch (error) {
@@ -90,17 +92,17 @@ const ImageDialog = ({
         >
           <ImageIcon className="h-4 w-4" />
           {isPdf ? (
-            signedUrl && !loading ? (
+            !loading ? (
               <a
-                href={signedUrl}
+                href={signedUrl as string}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-primary hover:text-primary/80"
+                aria-disabled={loading || !signedUrl}
               >
                 {alt}
               </a>
             ) : (
-              <Loader2 className="animate-spin text-blue-600" size={24} />
+              <Loader2 className="h-4 w-4 animate-spin" />
             )
           ) : (
             <span>{alt}</span>
@@ -147,6 +149,22 @@ const ImageDialog = ({
 
 const ClientDetails = ({ order }: DetailsProps) => {
   const token = useAuthStore((state) => state.token) as UserPermissionsToken;
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleOpenExcelImei = async () => {
+    if (signedUrl || loading) return;
+    setLoading(true);
+    try {
+      const signedUrl = await getSignedUrl(order.imei_excel_url);
+      window.open(signedUrl, "_blank");
+      setSignedUrl(signedUrl);
+    } catch (error) {
+      console.error("Error getting signed URL:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Sheet>
@@ -452,11 +470,24 @@ const ClientDetails = ({ order }: DetailsProps) => {
               <div className="grid gap-2">
                 {order.imei_excel_url && (
                   <button
-                    onClick={() => window.open(order.imei_excel_url, "_blank")}
+                    onClick={
+                      !signedUrl
+                        ? handleOpenExcelImei
+                        : () => window.open(signedUrl as string, "_blank")
+                    }
                     className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
                   >
-                    <FileSpreadsheet className="h-4 w-4" />
-                    <span>Excel IMEI</span>
+                    {loading ? (
+                      <>
+                        <FileSpreadsheet className="h-4 w-4" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        <FileSpreadsheet className="h-4 w-4" />
+                        <span>Excel IMEI</span>
+                      </>
+                    )}
                   </button>
                 )}
                 {order.import_receipt_url && (

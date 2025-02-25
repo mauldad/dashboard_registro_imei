@@ -23,7 +23,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Clock, Copy, Dot, Loader, Loader2 } from "lucide-react";
+import { Check, Clock, Copy, Dot, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ClientDetails from "./client-details";
 import { IOrder } from "@/types/client";
@@ -98,9 +98,11 @@ const ClientsTable = ({
     const isPdf = src.endsWith(".pdf");
 
     const handleDialogOpen = async () => {
+      if (signedUrl || loading) return;
       setLoading(true);
       try {
         const signedUrl = await getSignedUrl(src);
+        if (isPdf) window.open(signedUrl, "_blank");
         setSignedUrl(signedUrl);
         setDialogOpen(true);
       } catch (error) {
@@ -118,17 +120,17 @@ const ClientsTable = ({
             onClick={handleDialogOpen}
           >
             {isPdf ? (
-              signedUrl && !loading ? (
+              !loading ? (
                 <a
-                  href={signedUrl}
+                  href={signedUrl as string}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-primary hover:text-primary/80"
+                  aria-disabled={loading || !signedUrl}
                 >
                   {alt}
                 </a>
               ) : (
-                <Loader className="animate-spin text-blue-600" size={24} />
+                <Loader2 className="animate-spin" />
               )
             ) : (
               alt
@@ -150,7 +152,7 @@ const ClientsTable = ({
               </div>
             ) : (
               <div className="flex justify-center items-center h-full ">
-                <Loader2 className="animate-spin text-blue-600" size={48} />
+                <Loader2 className="animate-spin" size={48} />
               </div>
             )}
           </DialogContent>
