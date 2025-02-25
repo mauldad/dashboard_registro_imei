@@ -21,6 +21,7 @@ const Reports = () => {
       await fetchAnalitycsClients(token?.channel as string, {
         month: searchParams.get("month") || undefined,
         year: searchParams.get("year") || undefined,
+        rejection_channel: searchParams.get("rejection_channel") || undefined,
       });
       setLoading(false);
     };

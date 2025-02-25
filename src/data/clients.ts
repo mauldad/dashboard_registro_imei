@@ -185,6 +185,7 @@ export async function getAllClients(): Promise<IOrder[]> {
 export interface ClientStatsFilters {
   month?: string;
   year?: string;
+  rejection_channel?: string;
 }
 
 export async function getClientsStats(
@@ -206,10 +207,6 @@ export async function getClientsStats(
       `,
       )
       .not("Account", "is", null);
-
-    if (channel !== "base") {
-      queryBuilder.eq("channel", channel);
-    }
 
     if (filters) {
       if (filters.month && filters.year) {
@@ -257,14 +254,18 @@ export async function getRejectionsStats(
   try {
     const queryBuilder = supabase.from("Rejection").select(
       `
-        reason,
-        created_at,
-        resolved_at,
-        resolved
-      `,
+      fields,
+      created_at,
+      resolved_at,
+      resolved,
+      Order!inner(channel)
+    `,
     );
 
     if (filters) {
+      if (filters.rejection_channel) {
+        queryBuilder.eq("Order.channel", filters.rejection_channel);
+      }
       if (filters.month && filters.year) {
         const startDate = `${filters.year}-${filters.month}-01`;
         const endDate = new Date(
@@ -287,7 +288,7 @@ export async function getRejectionsStats(
     }
 
     const processedData = data.map((item) => ({
-      reason: item.reason,
+      fields: item.fields,
       created_at: item.created_at,
       resolved_at: item.resolved_at,
       resolved: item.resolved,
