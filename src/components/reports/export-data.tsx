@@ -46,7 +46,7 @@ const ExportData = () => {
     try {
       setErrorExport(null);
       setLoadingExport(true);
-      let filteredData = await getAllClients();
+      let filteredData = await getAllClients({});
       let reportName = "reporte";
 
       switch (timeRange) {

@@ -147,18 +147,25 @@ const Dashboard = () => {
     setLoading(false);
   };
 
+  const handleExport = async () => {
+    await exportClientsExcel("clientes-export", token.channel, token.is_admin, {
+      query: searchParams.get("query") || undefined,
+      filters: {
+        month: searchParams.get("month") || undefined,
+        channel: searchParams.get("channel") || undefined,
+        type: searchParams.get("type") || undefined,
+        payment: searchParams.get("payment") || undefined,
+        status: searchParams.get("status") || undefined,
+      },
+    });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
         <button
-          onClick={async () =>
-            await exportClientsExcel(
-              "clientes-export",
-              token.channel,
-              token.is_admin,
-            )
-          }
+          onClick={handleExport}
           disabled={loadingExport || loading}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
         >
