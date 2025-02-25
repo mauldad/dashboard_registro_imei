@@ -61,6 +61,15 @@ interface ClientState {
     filename: string,
     channel: string,
     isAdmin: boolean,
+    params: {
+      query?: string;
+      filters?: {
+        month?: string;
+        year?: string;
+        status?: string;
+        payment_status?: string;
+      };
+    },
   ) => Promise<void>;
 }
 
@@ -205,10 +214,10 @@ const useClientStore = create<ClientState>((set, get) => ({
     });
     set({ clients: newClients });
   },
-  exportClientsExcel: async (filename, channel, isAdmin) => {
+  exportClientsExcel: async (filename, channel, isAdmin, params) => {
     try {
       set({ loadingExport: true, errorExport: null });
-      const clients = await getAllClients();
+      const clients = await getAllClients(params);
       exportToExcel(clients, filename, channel, isAdmin);
     } catch (error) {
       set({ error: (error as Error).message });

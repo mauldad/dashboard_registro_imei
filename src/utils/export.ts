@@ -23,6 +23,11 @@ export const exportToExcel = (
 
   const exportData = data.map((client, index) => ({
     ID: client.order_number,
+    Canal:
+      client.channel === "base"
+        ? "Registro de IMEI"
+        : client.channel.charAt(0).toUpperCase() + client.channel.slice(1),
+    "Numero de Orden": client.purchase_number || "-",
     RUT: client.Account?.rut || "-",
     Pasaporte: client.Account?.passport_number || "-",
     Nombres: client.Account?.Personal?.first_name,

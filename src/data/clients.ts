@@ -164,12 +164,57 @@ export async function getClients({
   }
 }
 
-export async function getAllClients(): Promise<IOrder[]> {
+export interface GetAllClientsParams {
+  query?: string;
+  filters?: ClientFilters;
+}
+
+export async function getAllClients({
+  query,
+  filters,
+}: GetAllClientsParams): Promise<IOrder[]> {
   try {
-    const { data, error } = await supabase
+    const queryBuilder = supabase
       .from("order_view")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
+
+    if (query) {
+      queryBuilder.or(
+        `order_number.ilike.%${query}%,rut.ilike.%${query}%,passport_number.ilike.%${query}%`,
+      );
+    }
+
+    if (filters) {
+      if (filters.month && filters.year) {
+        const startDate = `${filters.year}-${filters.month}-01`;
+        const endDate = new Date(
+          parseInt(filters.year),
+          parseInt(filters.month),
+          0,
+        ).toISOString();
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      } else if (filters.year) {
+        const startDate = `${filters.year}-01-01`;
+        const endDate = `${filters.year}-12-31`;
+        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      }
+      if (filters.channel) {
+        queryBuilder.eq("channel", filters.channel);
+      }
+      if (filters.type) {
+        queryBuilder.eq("is_business", filters.type === "business");
+      }
+      if (filters.payment) {
+        queryBuilder.eq("paid", filters.payment);
+      }
+      if (filters.status) {
+        queryBuilder.eq("registered", filters.status === "registered");
+      }
+    }
+    console.log(filters);
+
+    const { data, error } = await queryBuilder;
 
     if (error) {
       throw new Error(error.message);

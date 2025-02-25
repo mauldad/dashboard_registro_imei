@@ -92,6 +92,19 @@ const Clients = () => {
     setLoading(false);
   };
 
+  const handleExport = async () => {
+    await exportClientsExcel("clientes-export", token.channel, token.is_admin, {
+      query: searchParams.get("query") || undefined,
+      filters: {
+        month: searchParams.get("month") || undefined,
+        channel: searchParams.get("channel") || undefined,
+        type: searchParams.get("type") || undefined,
+        payment: searchParams.get("payment") || undefined,
+        status: searchParams.get("status") || undefined,
+      },
+    });
+  };
+
   return (
     <div className="h-full flex flex-col gap-6 p-6">
       <div className="flex justify-between items-center">
@@ -104,13 +117,7 @@ const Clients = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={async () =>
-              await exportClientsExcel(
-                "clientes-export",
-                token.channel,
-                token.is_admin,
-              )
-            }
+            onClick={handleExport}
             disabled={loadingExport || loading}
           >
             {loadingExport ? (
