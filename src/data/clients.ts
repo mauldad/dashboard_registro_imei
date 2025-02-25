@@ -212,7 +212,6 @@ export async function getAllClients({
         queryBuilder.eq("registered", filters.status === "registered");
       }
     }
-    console.log(filters);
 
     const { data, error } = await queryBuilder;
 
