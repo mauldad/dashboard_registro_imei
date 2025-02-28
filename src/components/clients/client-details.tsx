@@ -500,6 +500,14 @@ const ClientDetails = ({ order }: DetailsProps) => {
                   <ImageDialog
                     src={order.purchase_receipt_url}
                     alt="Recibo de Compra"
+                    {...(order.purchase_number && {
+                      listItems: [
+                        {
+                          label: "Número de pedido",
+                          value: order.purchase_number,
+                        },
+                      ],
+                    })}
                   />
                 )}
                 {order.Account?.Personal?.id_card_url &&
