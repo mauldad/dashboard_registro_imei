@@ -1,5 +1,13 @@
 import * as XLSX from "xlsx";
-import { Client, IImei, IOrder } from "../types/client";
+import { IImei, IOrder } from "../types/client";
+
+const internalFormMap = {
+  email: "Correo",
+  phone: "Teléfono",
+  in_person: "Presencial",
+  whatsapp: "WhatsApp",
+  social_media: "Redes Sociales",
+};
 
 export const exportToExcel = (
   data: IOrder[],
@@ -27,6 +35,9 @@ export const exportToExcel = (
       client.channel === "base"
         ? "Registro de IMEI"
         : client.channel.charAt(0).toUpperCase() + client.channel.slice(1),
+    "Canal Interno": client.internal_form
+      ? internalFormMap[client.internal_form]
+      : "-",
     "Numero de Orden": client.purchase_number || "-",
     RUT: client.Account?.rut || "-",
     Pasaporte: client.Account?.passport_number || "-",
