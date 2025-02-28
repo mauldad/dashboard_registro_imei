@@ -63,6 +63,7 @@ export interface ClientFilters {
   month?: string;
   year?: string;
   channel?: string;
+  internal_channel?: string;
   type?: string;
   payment?: string;
   status?: string;
@@ -125,8 +126,19 @@ export async function getClients({
         const endDate = `${filters.year}-12-31`;
         queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
       }
-      if (filters.channel && channel === "base") {
+      if (
+        filters.channel &&
+        channel === "base" &&
+        filters.channel !== "internal"
+      ) {
         queryBuilder.eq("channel", filters.channel);
+      }
+      if (filters.channel === "internal" && channel === "base") {
+        if (filters.internal_channel) {
+          queryBuilder.eq("internal_form", filters.internal_channel);
+        } else {
+          queryBuilder.not("internal_form", "is", null);
+        }
       }
       if (filters.type) {
         queryBuilder.eq("is_business", filters.type === "business");
@@ -199,8 +211,16 @@ export async function getAllClients({
         const endDate = `${filters.year}-12-31`;
         queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
       }
-      if (filters.channel) {
+
+      if (filters.channel && filters.channel !== "internal") {
         queryBuilder.eq("channel", filters.channel);
+      }
+      if (filters.channel === "internal") {
+        if (filters.internal_channel) {
+          queryBuilder.eq("internal_form", filters.internal_channel);
+        } else {
+          queryBuilder.not("internal_form", "is", null);
+        }
       }
       if (filters.type) {
         queryBuilder.eq("is_business", filters.type === "business");
