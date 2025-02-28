@@ -1,4 +1,4 @@
-import { AtSign, Filter, PieChart, Users } from "lucide-react";
+import { AtSign, BookUser, Filter, PieChart, Users } from "lucide-react";
 import useClientStore from "@/store/clients";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
 import ReportFilters from "./report-filters";
@@ -83,6 +83,43 @@ const RegistrationsReport = () => {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Walmart</span>
               <span className="font-medium">{stats.walmart}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-sm">Registros completados por Canal Interno</p>
+            </div>
+            <BookUser className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Correo Electronico</span>
+              <span className="font-medium">{stats.internal_form.email}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Telefono</span>
+              <span className="font-medium">{stats.internal_form.phone}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Presencial</span>
+              <span className="font-medium">
+                {stats.internal_form.in_person}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Whatsapp</span>
+              <span className="font-medium">
+                {stats.internal_form.whatsapp}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Redes Sociales</span>
+              <span className="font-medium">
+                {stats.internal_form.social_media}
+              </span>
             </div>
           </div>
         </div>

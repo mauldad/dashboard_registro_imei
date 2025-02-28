@@ -12,6 +12,7 @@ export const getRegistrationsStats = (
   const mostRepeatedBusinesses = getMostRepetedBusinesses(filteredData);
   const sla = getRegistationsSLA(filteredData, slaFilter);
   const rejections = getRejectionsStats(rejectionData, filteredData.length);
+  const internal_form = getInternalFormStats(filteredData);
 
   const stats = {
     total: filteredData.length,
@@ -29,6 +30,7 @@ export const getRegistrationsStats = (
     topClients: mostRepeatedBusinesses,
     sla,
     rejections,
+    internal_form,
   };
 
   return stats;
@@ -135,4 +137,21 @@ const getRejectionsStats = (
     rejectionRate,
     reasons,
   };
+};
+
+const getInternalFormStats = (data: OrderAnalitycs[]) => {
+  const internalOrders = data.filter((o) => o.internal_form);
+  const result = {
+    email: 0,
+    phone: 0,
+    in_person: 0,
+    whatsapp: 0,
+    social_media: 0,
+  };
+
+  internalOrders.forEach((order) => {
+    result[order.internal_form]++;
+  });
+
+  return { ...result, total: internalOrders.length };
 };

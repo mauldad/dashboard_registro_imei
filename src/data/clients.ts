@@ -267,6 +267,7 @@ export async function getClientsStats(
         total_paid,
         paid,
         registered_at,
+        internal_form,
         created_at
       `,
       )
@@ -303,6 +304,7 @@ export async function getClientsStats(
       paid: item.paid,
       registered_at: item.registered_at,
       created_at: item.created_at,
+      internal_form: item.internal_form,
     }));
 
     return processedData;

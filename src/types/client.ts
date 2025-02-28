@@ -97,6 +97,7 @@ export interface OrderAnalitycs {
   created_at: string;
   channel: ChannelType;
   paid: PaymentStatus;
+  internal_form: InternalFormType | null;
 }
 
 export interface RejectionAnalitycs {
