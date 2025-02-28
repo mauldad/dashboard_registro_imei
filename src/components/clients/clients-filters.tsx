@@ -47,7 +47,7 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
   );
 
   return (
-    <section className="pb-4 flex justify-between">
+    <section className="pb-4 flex justify-between overflow-x-auto">
       <Tabs
         defaultValue={searchParams.get("status") || "all"}
         onValueChange={(value) => handleParamChange("status", value)}
@@ -115,8 +115,30 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
                 <SelectItem value="base">Base</SelectItem>
                 <SelectItem value="falabella">Falabella</SelectItem>
                 <SelectItem value="walmart">Walmart</SelectItem>
+                <SelectItem value="internal">Formulario Interno</SelectItem>
               </SelectContent>
             </Select>
+
+            {searchParams.get("channel") === "internal" && (
+              <Select
+                defaultValue={searchParams.get("internal_channel") || "all"}
+                onValueChange={(value) =>
+                  handleParamChange("internal_channel", value)
+                }
+              >
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue placeholder="Seleccionar canal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los canales</SelectItem>
+                  <SelectItem value="email">Correo</SelectItem>
+                  <SelectItem value="phone">Telefono</SelectItem>
+                  <SelectItem value="in_person">Presencial</SelectItem>
+                  <SelectItem value="whatsapp">Whatsapp</SelectItem>
+                  <SelectItem value="social_media">Redes Sociales</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
 
             <Select
               defaultValue={searchParams.get("type") || "all"}
