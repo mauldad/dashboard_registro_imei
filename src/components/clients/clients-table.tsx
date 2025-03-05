@@ -250,8 +250,7 @@ const ClientsTable = ({
                         onValueChange={() => onStatusChange(order.id)}
                         disabled={
                           order.paid !== "approved" ||
-                          !token.is_admin ||
-                          !token.is_operator
+                          (!token.is_operator && !token.is_admin)
                         }
                       >
                         <SelectTrigger className="w-[130px]">
