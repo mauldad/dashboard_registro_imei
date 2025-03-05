@@ -248,7 +248,11 @@ const ClientsTable = ({
                       <Select
                         defaultValue={order.registered ? "approved" : "pending"}
                         onValueChange={() => onStatusChange(order.id)}
-                        disabled={order.paid !== "approved"}
+                        disabled={
+                          order.paid !== "approved" ||
+                          !token.is_admin ||
+                          !token.is_operator
+                        }
                       >
                         <SelectTrigger className="w-[130px]">
                           <SelectValue />
