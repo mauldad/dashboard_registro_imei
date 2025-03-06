@@ -4,7 +4,13 @@ import { AtSign } from "lucide-react";
 import useClientStore from "@/store/clients";
 import { useSearchParams } from "react-router-dom";
 
-const SLAReport = ({ data }) => {
+interface SLAReportProps {
+  data: any;
+  filters?: boolean;
+  title: string;
+}
+
+const SLAReport = ({ data, filters, title }: SLAReportProps) => {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
 
@@ -57,11 +63,15 @@ const SLAReport = ({ data }) => {
     <div className="bg-white p-6 rounded-xl shadow-sm">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm">SLA</p>
+          <p className="text-sm">SLA {title && `de ${title}`}</p>
         </div>
         <AtSign className="w-5 h-5 text-blue-500" />
       </div>
-      <SLAFilter />
+      {filters ? (
+        <SLAFilter />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 h-11"></div>
+      )}
       <div className="mt-4 space-y-2">
         <canvas ref={chartRef} className="mt-4"></canvas>
       </div>

@@ -101,6 +101,7 @@ export interface OrderAnalitycs {
   channel: ChannelType;
   paid: PaymentStatus;
   internal_form: InternalFormType | null;
+  registered_by: string | null;
 }
 
 export interface RejectionAnalitycs {

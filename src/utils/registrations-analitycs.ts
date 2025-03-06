@@ -11,6 +11,7 @@ export const getRegistrationsStats = (
 ) => {
   const mostRepeatedBusinesses = getMostRepetedBusinesses(filteredData);
   const sla = getRegistationsSLA(filteredData, slaFilter);
+  const operatorsSla = getOperatorsSLA(filteredData);
   const rejections = getRejectionsStats(rejectionData, filteredData.length);
   const internal_form = getInternalFormStats(filteredData);
 
@@ -29,6 +30,7 @@ export const getRegistrationsStats = (
       .length,
     topClients: mostRepeatedBusinesses,
     sla,
+    operatorsSla,
     rejections,
     internal_form,
   };
@@ -93,6 +95,39 @@ const getRegistationsSLA = (
       if (slaHours <= SLA_LIMIT) slaData[key].metSLA++;
     },
   );
+
+  const sla = Object.keys(slaData).map((key) => ({
+    label: key,
+    avgSLA: slaData[key].total / slaData[key].count,
+    complianceRate: (slaData[key].metSLA / slaData[key].count) * 100,
+  }));
+
+  return sla;
+};
+
+const getOperatorsSLA = (filteredData: OrderAnalitycs[]) => {
+  const slaData = {};
+  const SLA_LIMIT = 4; // 4 horas
+
+  const validRecords = filteredData.filter(
+    (c) => c.registered && c.registered_at,
+  );
+
+  validRecords.forEach(({ registered_by, registered_at, created_at }) => {
+    const registeredDate = new Date(registered_at as string).getTime();
+    const createdDate = new Date(created_at).getTime();
+    const slaHours = (registeredDate - createdDate) / 3600000;
+
+    const key = registered_by;
+
+    if (!slaData[key]) {
+      slaData[key] = { total: 0, count: 0, metSLA: 0 };
+    }
+
+    slaData[key].total += slaHours;
+    slaData[key].count++;
+    if (slaHours <= SLA_LIMIT) slaData[key].metSLA++;
+  });
 
   const sla = Object.keys(slaData).map((key) => ({
     label: key,
