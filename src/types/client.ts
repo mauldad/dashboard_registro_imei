@@ -79,6 +79,9 @@ interface IAccount {
 
 interface IBusiness {
   business_name: string;
+  business_type: string;
+  address: string;
+  city: string;
 }
 
 interface IPersonal {
