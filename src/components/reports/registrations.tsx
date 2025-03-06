@@ -145,7 +145,14 @@ const RegistrationsReport = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SLAReport data={stats.sla} />
+        <SLAReport
+          data={stats.sla}
+          title={
+            searchParams.get("sla") === "channels" ? "Canales" : "Servicios"
+          }
+          filters
+        />
+        <SLAReport data={stats.operatorsSla} title="Operadores" />
       </div>
     </>
   );
