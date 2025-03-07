@@ -30,6 +30,7 @@ function formatClientsData(data: any): IOrder[] {
     purchase_number: order.purchase_number || undefined,
     reject_reason: order.reject_reason,
     internal_form: order.internal_form,
+    folio: order.folio,
     Imei: order.imei.map((imei: any) => ({
       imei_number: imei.imei_number,
       brand: imei.brand,
@@ -689,4 +690,29 @@ export const getSignedUrl = async (url: string) => {
     .createSignedUrl(formattedUrl, 60 * 60);
   if (error) throw new Error(error.message);
   return data.signedUrl;
+};
+
+export const getFolioPdf = async (folio: number, is_business: boolean) => {
+  try {
+    const documentType = is_business ? "33" : "39";
+    const response = await fetch("/.netlify/functions/get_folio_pdf", {
+      method: "POST",
+      body: JSON.stringify({ folio, documentType }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to get folio pdf");
+    }
+
+    const data = await response.json();
+    const { pdf } = data;
+    const uint8Array = new Uint8Array(pdf.data);
+    const blob = new Blob([uint8Array], { type: "application/pdf" });
+    const pdfUrl = URL.createObjectURL(blob);
+    console.log(blob, pdfUrl, pdf);
+
+    return pdfUrl;
+  } catch (error) {
+    console.error("Get folio PDF Error:", error);
+    throw new Error("Get folio pdf failed");
+  }
 };
