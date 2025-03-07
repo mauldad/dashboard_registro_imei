@@ -31,6 +31,7 @@ import {
   Check,
   Clock,
   Dot,
+  File,
   FileSpreadsheet,
   FileText,
   Image as ImageIcon,
@@ -42,7 +43,7 @@ import {
   X,
 } from "lucide-react";
 import useAuthStore, { UserPermissionsToken } from "@/store/auth";
-import { getSignedUrl } from "@/data/clients";
+import { getFolioPdf, getSignedUrl } from "@/data/clients";
 import { useState } from "react";
 
 interface DetailsProps {
@@ -151,6 +152,8 @@ const ClientDetails = ({ order }: DetailsProps) => {
   const token = useAuthStore((state) => state.token) as UserPermissionsToken;
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [folioUrl, setFolioUrl] = useState<string | null>(null);
+  const [folioLoading, setFolioLoading] = useState(false);
 
   const handleOpenExcelImei = async () => {
     if (signedUrl || loading) return;
@@ -163,6 +166,23 @@ const ClientDetails = ({ order }: DetailsProps) => {
       console.error("Error getting signed URL:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenFolioPdf = async () => {
+    if (folioUrl || folioLoading) return;
+    setFolioLoading(true);
+    try {
+      const pdfUrl = await getFolioPdf(
+        order.folio,
+        order.Account?.is_business || false,
+      );
+      window.open(pdfUrl, "_blank");
+      setFolioUrl(pdfUrl);
+    } catch (error) {
+      console.error("Error getting folio URL:", error);
+    } finally {
+      setFolioLoading(false);
     }
   };
 
@@ -468,6 +488,30 @@ const ClientDetails = ({ order }: DetailsProps) => {
             <div className="py-4 px-6 space-y-2">
               <h3 className="font-medium">Documentos</h3>
               <div className="grid gap-2">
+                {order.folio && (
+                  <button
+                    onClick={
+                      !folioUrl
+                        ? handleOpenFolioPdf
+                        : () => window.open(folioUrl as string, "_blank")
+                    }
+                    className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {folioLoading ? (
+                      <>
+                        <File className="h-4 w-4" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        <File className="h-4 w-4" />
+                        <span>
+                          {order.Account?.is_business ? "Factura" : "Boleta"}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
                 {order.imei_excel_url && (
                   <button
                     onClick={
