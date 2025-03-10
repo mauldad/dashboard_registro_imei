@@ -300,7 +300,7 @@ export async function getClientsStats(
     const { data: userData, error: userError } = await supabase
       .from("user_details")
       .select("user_id, email")
-      .in("user_id", data.map((item) => item.registered_by).filter(Boolean));
+      .eq("is_operator", true);
 
     if (userError) {
       throw new Error(userError.message);
@@ -321,7 +321,9 @@ export async function getClientsStats(
       registered_at: item.registered_at,
       created_at: item.created_at,
       internal_form: item.internal_form,
-      registered_by: userMap[item.registered_by],
+      registered_by: item.registered_by
+        ? userMap[item.registered_by]
+        : undefined,
     }));
 
     return processedData;

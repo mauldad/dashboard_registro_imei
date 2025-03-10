@@ -10,7 +10,7 @@ export const getRegistrationsStats = (
   slaFilter: string,
 ) => {
   const mostRepeatedBusinesses = getMostRepetedBusinesses(filteredData);
-  const sla = getRegistationsSLA(filteredData, slaFilter);
+  const sla = getRegistrationsSLA(filteredData, slaFilter);
   const operatorsSla = getOperatorsSLA(filteredData);
   const rejections = getRejectionsStats(rejectionData, filteredData.length);
   const internal_form = getInternalFormStats(filteredData);
@@ -60,12 +60,93 @@ const getMostRepetedBusinesses = (filteredData: OrderAnalitycs[]) => {
   return mostRepeatedBusinesses;
 };
 
-const getRegistationsSLA = (
+const SLA_LIMIT = 4; // 4 horas
+const WORK_START = 9; // 09:00 AM
+const WORK_END = 19; // 19:00 PM
+
+const isWeekend = (date: Date) => date.getDay() === 6 || date.getDay() === 0;
+
+const nextBusinessDay = (date: Date) => {
+  if (date.getDay() === 6) date.setDate(date.getDate() + 2); // Sábado → Lunes
+  if (date.getDay() === 0) date.setDate(date.getDate() + 1); // Domingo → Lunes
+  return date;
+};
+
+const adjustToBusinessHours = (date: Date) => {
+  let adjusted = new Date(date);
+  adjusted = nextBusinessDay(adjusted);
+
+  if (adjusted.getHours() < WORK_START) {
+    adjusted.setHours(WORK_START, 0, 0, 0);
+  } else if (adjusted.getHours() >= WORK_END) {
+    adjusted.setDate(adjusted.getDate() + 1);
+    adjusted = nextBusinessDay(adjusted);
+    adjusted.setHours(WORK_START, 0, 0, 0);
+  }
+
+  return adjusted;
+};
+
+const getBusinessHoursBetween = (start: Date, end: Date) => {
+  let totalHours = 0;
+  let current = new Date(start);
+
+  while (current < end) {
+    if (!isWeekend(current)) {
+      let workEnd = new Date(current);
+      workEnd.setHours(WORK_END, 0, 0, 0);
+
+      if (end < workEnd) {
+        totalHours += (end.getTime() - current.getTime()) / 3600000;
+        break;
+      } else {
+        totalHours += (workEnd.getTime() - current.getTime()) / 3600000;
+        current.setDate(current.getDate() + 1);
+        current = adjustToBusinessHours(current);
+      }
+    } else {
+      current.setDate(current.getDate() + 1);
+      current = adjustToBusinessHours(current);
+    }
+  }
+  return totalHours;
+};
+
+const getOperatorsSLA = (filteredData: OrderAnalitycs[]) => {
+  const slaData = {};
+
+  const validRecords = filteredData.filter((c) => c.registered_by);
+
+  validRecords.forEach(({ registered_by, registered_at, created_at }) => {
+    let createdDate = adjustToBusinessHours(new Date(created_at));
+    let registeredDate = adjustToBusinessHours(
+      new Date(registered_at as string),
+    );
+
+    const slaHours = getBusinessHoursBetween(createdDate, registeredDate);
+    const key = registered_by;
+
+    if (!slaData[key]) {
+      slaData[key] = { total: 0, count: 0, metSLA: 0 };
+    }
+
+    slaData[key].total += slaHours;
+    slaData[key].count++;
+    if (slaHours <= SLA_LIMIT) slaData[key].metSLA++;
+  });
+
+  return Object.keys(slaData).map((key) => ({
+    label: key,
+    avgSLA: slaData[key].total / slaData[key].count,
+    complianceRate: (slaData[key].metSLA / slaData[key].count) * 100,
+  }));
+};
+
+const getRegistrationsSLA = (
   filteredData: OrderAnalitycs[],
   slaFilter: string,
 ) => {
   const slaData = {};
-  const SLA_LIMIT = 4; // 4 horas
 
   const validRecords = filteredData.filter(
     (c) => c.registered && c.registered_at,
@@ -73,9 +154,12 @@ const getRegistationsSLA = (
 
   validRecords.forEach(
     ({ is_business, registered_at, created_at, channel }) => {
-      const registeredDate = new Date(registered_at as string).getTime();
-      const createdDate = new Date(created_at).getTime();
-      const slaHours = (registeredDate - createdDate) / 3600000;
+      let createdDate = adjustToBusinessHours(new Date(created_at));
+      let registeredDate = adjustToBusinessHours(
+        new Date(registered_at as string),
+      );
+
+      const slaHours = getBusinessHoursBetween(createdDate, registeredDate);
 
       const key =
         slaFilter === "services"
@@ -96,46 +180,11 @@ const getRegistationsSLA = (
     },
   );
 
-  const sla = Object.keys(slaData).map((key) => ({
+  return Object.keys(slaData).map((key) => ({
     label: key,
     avgSLA: slaData[key].total / slaData[key].count,
     complianceRate: (slaData[key].metSLA / slaData[key].count) * 100,
   }));
-
-  return sla;
-};
-
-const getOperatorsSLA = (filteredData: OrderAnalitycs[]) => {
-  const slaData = {};
-  const SLA_LIMIT = 4; // 4 horas
-
-  const validRecords = filteredData.filter(
-    (c) => c.registered && c.registered_at,
-  );
-
-  validRecords.forEach(({ registered_by, registered_at, created_at }) => {
-    const registeredDate = new Date(registered_at as string).getTime();
-    const createdDate = new Date(created_at).getTime();
-    const slaHours = (registeredDate - createdDate) / 3600000;
-
-    const key = registered_by;
-
-    if (!slaData[key]) {
-      slaData[key] = { total: 0, count: 0, metSLA: 0 };
-    }
-
-    slaData[key].total += slaHours;
-    slaData[key].count++;
-    if (slaHours <= SLA_LIMIT) slaData[key].metSLA++;
-  });
-
-  const sla = Object.keys(slaData).map((key) => ({
-    label: key,
-    avgSLA: slaData[key].total / slaData[key].count,
-    complianceRate: (slaData[key].metSLA / slaData[key].count) * 100,
-  }));
-
-  return sla;
 };
 
 const fieldsMap = {
