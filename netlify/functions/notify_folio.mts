@@ -18,7 +18,7 @@ export default async (req: Request, context: Context) => {
       subject: `Tu ${
         is_business ? "factura" : "boleta"
       } esta lista! #${order_number}`,
-      html: `Adjuntamos tu ${
+      html: `Adjuntamos la ${
         is_business ? "factura" : "boleta"
       } de tu orden #${order_number}.`,
       attachments: [
