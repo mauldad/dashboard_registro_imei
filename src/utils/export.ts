@@ -21,14 +21,6 @@ export const exportToExcel = (
     rejected: "Rechazado",
   };
 
-  const imeiData = data.map((order) =>
-    order.Imei?.map((imei, index) => ({
-      [`IMEI ${index + 1}`]: imei.imei_number || "",
-      [`Marca ${index + 1}`]: imei.brand || "",
-      [`Modelo ${index + 1}`]: imei.model || "",
-    })),
-  );
-
   const exportData = data.map((client, index) => ({
     ID: client.order_number,
     Canal:
@@ -62,7 +54,7 @@ export const exportToExcel = (
     "Estado Registro": client.registered ? "Registrado" : "En Espera",
     "Estado Pago": paidEnum[client.paid],
     "Fecha Pago": client.created_at,
-    ...imeiData[index]?.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+    "Cantidad de IMEIs": client.Imei.length,
   }));
 
   const ws = XLSX.utils.json_to_sheet(exportData);
