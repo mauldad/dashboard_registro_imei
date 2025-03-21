@@ -176,6 +176,9 @@ const businessFields = {
   email: "Email",
   excelImeisUrl: "Excel de imeis",
   importReceiptUrl: "Comprobante de importación",
+  businessType: "Giro",
+  address: "Dirección",
+  city: "Ciudad",
 };
 
 export const rejectedRegister = (
