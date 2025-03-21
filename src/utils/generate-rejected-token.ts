@@ -56,6 +56,9 @@ export const generateRejectedTokenBusiness = async (
     email: order.email,
     excelImeisUrl: order.imei_excel_url,
     importReceiptUrl: order.import_receipt_url,
+    businessType: order.Account?.Business?.business_type,
+    address: order.Account?.Business?.address,
+    city: order.Account?.Business?.city,
   };
 
   const rejectedTokenFields = rejectedFields.reduce((acc, field) => {
