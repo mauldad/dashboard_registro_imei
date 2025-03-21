@@ -69,6 +69,9 @@ const businessFields = [
   { label: "Email", value: "email" },
   { label: "Excel de imeis", value: "excelImeisUrl" },
   { label: "Comprobante de importación", value: "importReceiptUrl" },
+  { label: "Giro", value: "businessType" },
+  { label: "Dirección", value: "address" },
+  { label: "Ciudad", value: "city" },
 ];
 
 export default function RejectForm({ order }: RejectFormProps) {
