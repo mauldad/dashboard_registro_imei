@@ -247,15 +247,19 @@ const sendReportEmail = async (
   channel: string,
 ) => {
   const ordersIds = orders.map((order) => order.id);
-  const oneWeekAgo = new Date(
-    Date.now() - 7 * 24 * 60 * 60 * 1000,
-  ).toISOString();
-  const { count: totalResolved } = await supabase
-    .from("Rejected")
+  const { data: resolvedRejections } = await supabase
+    .from("Rejection")
     .select("order_id")
     .eq("resolved", true)
-    .eq("order_id", ordersIds)
-    .gte("resolved_at", oneWeekAgo);
+    .in("order_id", ordersIds);
+
+  const totalResolved = new Set(
+    resolvedRejections?.map((r) => r.order_id) || [],
+  ).size;
+  const totalNotResolved = orders.filter(
+    (order) => order.paid === "rejected",
+  ).length;
+  const totalRejected = totalResolved + totalNotResolved;
 
   const { count: totalRegister } = await supabase
     .from("Order")
@@ -263,9 +267,6 @@ const sendReportEmail = async (
     .match({ channel, registered: true });
 
   const totalWeekRegister = orders.filter((order) => order.registered).length;
-  const totalRejected = orders.filter(
-    (order) => order.paid === "rejected",
-  ).length;
 
   const conversionRate =
     orders.length > 0
@@ -285,7 +286,7 @@ const sendReportEmail = async (
   const sendEmail = await resend.emails.send({
     from: "registrodeimei.cl <no-reply@correot.registrodeimei.cl>",
     // to: toEmails,
-    to: ["linyers666@gmail.com", "maduoseo@maduo.cl", ...toEmails],
+    to: ["linyers666@gmail.com", ...toEmails],
     subject: `Informe semanal de su servicio ${channel.charAt(0).toUpperCase() + channel.slice(1)}`,
     html: ReportEmail({
       ...metrics,
@@ -356,7 +357,7 @@ const ReportEmail = (data: {
           </p>
 
           <p style="font-size: 16px; line-height: 24px; color: #4b5563; margin-bottom: 24px;">
-            Esperamos que se encuentre bien. Como parte de nuestro compromiso con la transparencia y calidad de servicio, 
+            Esperamos que se encuentren bien. Como parte de nuestro compromiso con la transparencia y calidad de servicio, 
             le compartimos el informe semanal de las métricas de su formulario de homologación:
           </p>
 
@@ -416,5 +417,5 @@ const ReportEmail = (data: {
 };
 
 export const config: Config = {
-  schedule: "@weekly",
+  schedule: "0 12 * * 2",
 };
