@@ -59,6 +59,7 @@ export interface IOrder {
   reject_reason: string | null;
   internal_form: InternalFormType;
   folio: number;
+  registered_at: string | null;
 }
 
 export interface IImei {

@@ -83,6 +83,8 @@ export async function createUser(formData: UserFormData) {
         channel: formData.channel,
         is_admin: formData.is_admin,
         is_operator: formData.is_operator,
+        is_client: formData.is_client,
+        receive_weekly_reports: formData.receive_weekly_reports,
       },
     },
   });
@@ -101,6 +103,8 @@ export async function updateSupabaseUser(formData: User, userId: string) {
     p_channel: formData.channel,
     p_is_admin: formData.is_admin,
     p_is_operator: formData.is_operator,
+    p_is_client: formData.is_client,
+    p_receive_weekly_reports: formData.receive_weekly_reports,
   };
   const { data, error } = await supabase.rpc("update_auth_user", body);
   if (error) throw new Error(error.message);

@@ -9,7 +9,9 @@ export const user_schema = z.object({
     })
     .default("base"),
   is_admin: z.boolean().default(false),
-  is_operator: z.boolean().default(true),
+  is_operator: z.boolean().default(false),
+  is_client: z.boolean().default(true),
+  receive_weekly_reports: z.boolean().default(false),
 });
 
 export type UserFormData = z.infer<typeof user_schema>;
