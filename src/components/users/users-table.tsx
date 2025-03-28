@@ -50,6 +50,10 @@ const UsersTable = ({
 }: UsersTableProps) => {
   const pageSize = useUserStore((state) => state.pageSize);
 
+  const getUserRole = (user: User) => {
+    return user.is_admin ? "Admin" : user.is_operator ? "Operador" : "Cliente";
+  };
+
   return (
     <section className="flex-1 flex flex-col space-y-4">
       <ScrollArea className="flex-1 border rounded-md">
@@ -58,8 +62,8 @@ const UsersTable = ({
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Canal</TableHead>
-              <TableHead>Operador</TableHead>
-              <TableHead>Admin</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Reporte Semanal</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -79,14 +83,12 @@ const UsersTable = ({
                   </TableCell>
                   <TableCell>{user.channel}</TableCell>
                   <TableCell>
-                    {user.is_operator ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-500" />
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Badge variant="secondary">{getUserRole(user)}</Badge>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    {user.is_admin ? (
+                    {user.receive_weekly_reports ? (
                       <CheckCircle className="h-4 w-4 text-green-500" />
                     ) : (
                       <XCircle className="h-4 w-4 text-red-500" />
@@ -94,7 +96,7 @@ const UsersTable = ({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <UserForm key={user.id} user={user} />
+                      <UserForm key={user.user_id} user={user} />
                     </div>
                   </TableCell>
                 </TableRow>
