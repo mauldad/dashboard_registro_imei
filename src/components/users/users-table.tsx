@@ -30,6 +30,7 @@ import UserForm from "./user-form";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import useUserStore from "@/store/users";
+import TablePagination from "../common/pagination";
 
 interface UsersTableProps {
   users: User[];
@@ -104,61 +105,13 @@ const UsersTable = ({
           </TableBody>
         </Table>
       </ScrollArea>
-
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Mostrar</span>
-          <Select
-            defaultValue={pageSize.toString()}
-            onValueChange={(value) => onPageSizeChange?.(Number(value))}
-          >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="30">30</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Pagination className="w-fit mx-0">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() => onPageChange(currentPage - 1)}
-                className={
-                  currentPage <= 1 ? "pointer-events-none opacity-50" : ""
-                }
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  href="#"
-                  onClick={() => onPageChange(page)}
-                  isActive={currentPage === page}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() => onPageChange(currentPage + 1)}
-                className={
-                  currentPage >= totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+      <TablePagination
+        currentPage={currentPage}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        pageSize={pageSize}
+        totalPages={totalPages}
+      />
     </section>
   );
 };
