@@ -417,5 +417,5 @@ const ReportEmail = (data: {
 };
 
 export const config: Config = {
-  schedule: "0 12 * * 2",
+  schedule: "53 16 * * 1",
 };
