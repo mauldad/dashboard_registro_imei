@@ -95,6 +95,7 @@ const Clients = () => {
 
   const handleExport = async () => {
     await exportClientsExcel("clientes-export", token.channel, token.is_admin, {
+      channel: token.channel,
       query: searchParams.get("query") || undefined,
       filters: {
         month: searchParams.get("month") || undefined,

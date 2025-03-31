@@ -62,6 +62,7 @@ interface ClientState {
     channel: string,
     isAdmin: boolean,
     params: {
+      channel?: string;
       query?: string;
       filters?: {
         month?: string;

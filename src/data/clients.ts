@@ -178,11 +178,13 @@ export async function getClients({
 }
 
 export interface GetAllClientsParams {
+  channel?: string;
   query?: string;
   filters?: ClientFilters;
 }
 
 export async function getAllClients({
+  channel,
   query,
   filters,
 }: GetAllClientsParams): Promise<IOrder[]> {
@@ -191,6 +193,11 @@ export async function getAllClients({
       .from("order_view")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
+
+    // Apply base channel filter
+    if (channel !== "base") {
+      queryBuilder.eq("channel", channel);
+    }
 
     if (query) {
       queryBuilder.or(
