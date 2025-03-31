@@ -27,9 +27,11 @@ export const exportToExcel = (
       client.channel === "base"
         ? "Registro de IMEI"
         : client.channel.charAt(0).toUpperCase() + client.channel.slice(1),
-    "Canal Interno": client.internal_form
-      ? internalFormMap[client.internal_form]
-      : "-",
+    ...(client.channel === "base" && {
+      "Canal Interno": client.internal_form
+        ? internalFormMap[client.internal_form]
+        : "-",
+    }),
     "Numero de Orden": client.purchase_number || "-",
     RUT: client.Account?.rut || "-",
     Pasaporte: client.Account?.passport_number || "-",

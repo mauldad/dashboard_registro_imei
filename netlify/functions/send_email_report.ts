@@ -246,39 +246,16 @@ const sendReportEmail = async (
   clients: User[],
   channel: string,
 ) => {
-  const ordersIds = orders.map((order) => order.id);
-  const { data: resolvedRejections } = await supabase
-    .from("Rejection")
-    .select("order_id")
-    .eq("resolved", true)
-    .in("order_id", ordersIds);
-
-  const totalResolved = new Set(
-    resolvedRejections?.map((r) => r.order_id) || [],
-  ).size;
+  const totalRegister = orders.length;
+  const totalWeekRegister = orders.filter((order) => order.registered).length;
   const totalNotResolved = orders.filter(
     (order) => order.paid === "rejected",
   ).length;
-  const totalRejected = totalResolved + totalNotResolved;
-
-  const { count: totalRegister } = await supabase
-    .from("Order")
-    .select("*", { count: "exact", head: true })
-    .match({ channel, registered: true });
-
-  const totalWeekRegister = orders.filter((order) => order.registered).length;
-
-  const conversionRate =
-    orders.length > 0
-      ? ((totalWeekRegister / orders.length) * 100).toFixed(2)
-      : "0.00";
 
   const metrics = {
     totalRegister: totalRegister as number,
     totalWeekRegister,
-    totalRejected,
-    totalResolved: totalResolved || 0,
-    conversionRate,
+    totalRejected: totalNotResolved || 0,
   };
 
   const toEmails = clients.map((client) => client.email);
@@ -311,8 +288,6 @@ const ReportEmail = (data: {
   totalRegister: number;
   totalWeekRegister: number;
   totalRejected: number;
-  totalResolved: number;
-  conversionRate: string;
   channel: string;
 }) => {
   const endDate = new Date();
@@ -364,19 +339,13 @@ const ReportEmail = (data: {
           <!-- Stats Box -->
           <div style="background-color: #f9fafb; padding: 16px; border-radius: 8px; margin: 24px 0;">
             <p style="font-size: 16px; line-height: 24px; color: #374151; margin: 8px 0;">
-              <strong>Homologaciones totales:</strong> ${data.totalRegister}
+              <strong>Registros totales (${dateInterval}):</strong> ${data.totalRegister}
             </p>
             <p style="font-size: 16px; line-height: 24px; color: #374151; margin: 8px 0;">
               <strong>Clientes homologados (${dateInterval}):</strong> ${data.totalWeekRegister}
             </p>
             <p style="font-size: 16px; line-height: 24px; color: #374151; margin: 8px 0;">
               <strong>Rechazos en form:</strong> ${data.totalRejected}
-            </p>
-            <p style="font-size: 16px; line-height: 24px; color: #374151; margin: 8px 0;">
-              <strong>Subsanados:</strong> ${data.totalResolved}
-            </p>
-            <p style="font-size: 16px; line-height: 24px; color: #374151; margin: 8px 0; font-weight: bold;">
-              <strong>Tasa de conversión del formulario:</strong> ${data.conversionRate}%
             </p>
           </div>
 
