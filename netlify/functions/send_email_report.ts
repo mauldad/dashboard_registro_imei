@@ -31,6 +31,7 @@ interface Order {
   registered_at: string;
   paid: "approved" | "pending" | "rejected";
   registered: boolean;
+  purchase_number: string | null;
   channel: string;
   personal?: {
     first_name: string;
@@ -180,6 +181,7 @@ const getExcel = async (orders: Order[] | null) => {
 
     worksheet.columns = [
       { header: "ID", key: "id", width: 10 },
+      { header: "Número de comprobante", key: "purchase_number", width: 20 },
       { header: "Numero de Orden", key: "order_number", width: 15 },
       { header: "Rut o Pasaporte", key: "identification", width: 15 },
       { header: "Nombres y Apellidos", key: "full_name", width: 30 },
@@ -206,6 +208,7 @@ const getExcel = async (orders: Order[] | null) => {
 
       worksheet.addRow({
         id: order.id,
+        purchase_number: order.purchase_number || "",
         order_number: order.order_number,
         identification,
         full_name: fullName,
