@@ -266,7 +266,7 @@ const sendReportEmail = async (
   const sendEmail = await resend.emails.send({
     from: "registrodeimei.cl <no-reply@correot.registrodeimei.cl>",
     // to: toEmails,
-    to: ["linyers666@gmail.com", "maduoseo@maduo.cl", ...toEmails],
+    to: ["marseo@maduo.cl", "maduoseo@maduo.cl", ...toEmails],
     subject: `Informe semanal de su servicio ${channel.charAt(0).toUpperCase() + channel.slice(1)}`,
     html: ReportEmail({
       ...metrics,
