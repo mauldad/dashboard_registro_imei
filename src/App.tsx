@@ -19,11 +19,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 const ProtectedRoute = ({
   children,
   isAllowed,
+  toPath = "/",
 }: {
   children: React.ReactNode;
   isAllowed: boolean;
+  toPath?: string;
 }) => {
-  return isAllowed ? <>{children}</> : <Navigate to="/" replace />;
+  return isAllowed ? <>{children}</> : <Navigate to={toPath} replace />;
 };
 
 function App() {
@@ -42,7 +44,17 @@ function App() {
                 <PrivateRoute>
                   <Layout>
                     <Routes>
-                      <Route path="/" element={<Dashboard />} />
+                      <Route
+                        path="/"
+                        element={
+                          <ProtectedRoute
+                            isAllowed={!token?.is_client}
+                            toPath="/clients"
+                          >
+                            <Dashboard />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route path="/clients" element={<Clients />} />
                       <Route
                         path="/reports"

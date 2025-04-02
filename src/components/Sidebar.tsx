@@ -31,19 +31,30 @@ const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { removeToken, token } = useAuthStore((state) => state);
-  const adminPaths = ["/users", "/reports"];
+  const pathPermissions = {
+    "/": ["admin", "operator"],
+    "/users": ["admin"],
+    "/reports": ["admin"],
+    "/clients": ["admin", "operator", "client"],
+    "/settings": ["admin", "operator", "client"],
+  };
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: Users, label: "Clientes", path: "/clients" },
     { icon: FileSpreadsheet, label: "Reportes", path: "/reports" },
-    { icon: Settings, label: "Configuración", path: "/settings" },
     { icon: UserCog, label: "Usuarios", path: "/users" },
+    { icon: Settings, label: "Configuración", path: "/settings" },
   ].filter((item) => {
-    if (adminPaths.includes(item.path) && !token?.is_admin) {
-      return false;
-    }
-    return true;
+    const allowedRoles =
+      pathPermissions[item.path as keyof typeof pathPermissions];
+    const userRole = token?.is_admin
+      ? "admin"
+      : token?.is_operator
+        ? "operator"
+        : "client";
+
+    return allowedRoles.includes(userRole);
   });
 
   return (
