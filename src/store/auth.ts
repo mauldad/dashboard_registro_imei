@@ -6,6 +6,7 @@ export interface UserPermissionsToken {
   channel: string;
   is_admin: boolean;
   is_operator: boolean;
+  is_client: boolean;
   exp: number;
 }
 
@@ -44,6 +45,7 @@ const useAuthStore = create<AuthStore>()(
           channel: decodeToken.channel,
           is_admin: decodeToken.is_admin,
           is_operator: decodeToken.is_operator,
+          is_client: decodeToken.is_client,
           exp: decodeToken.exp,
         };
         set({ token: userPermissions });
