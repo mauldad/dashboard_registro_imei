@@ -632,6 +632,7 @@ export const rejectClient = async (
       .update({
         paid: "rejected",
         registered: false,
+        reject_reason: reason,
       })
       .eq("id", order.id);
 
