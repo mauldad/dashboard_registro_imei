@@ -153,23 +153,22 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
                 <SelectItem value="personal">Personas</SelectItem>
               </SelectContent>
             </Select>
-
-            <Select
-              defaultValue={searchParams.get("payment") || "all"}
-              onValueChange={(value) => handleParamChange("payment", value)}
-            >
-              <SelectTrigger className="w-[170px]">
-                <SelectValue placeholder="Estado de pago" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="approved">Pagados</SelectItem>
-                <SelectItem value="pending">Pendientes de Pago</SelectItem>
-                <SelectItem value="rejected">Rechazados</SelectItem>
-              </SelectContent>
-            </Select>
           </>
         )}
+        <Select
+          defaultValue={searchParams.get("payment") || "all"}
+          onValueChange={(value) => handleParamChange("payment", value)}
+        >
+          <SelectTrigger className="w-[170px]">
+            <SelectValue placeholder="Estado de pago" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            <SelectItem value="approved">Pagados</SelectItem>
+            <SelectItem value="pending">Pendientes de Pago</SelectItem>
+            <SelectItem value="rejected">Rechazados</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </section>
   );
