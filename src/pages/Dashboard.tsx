@@ -42,7 +42,8 @@ const Dashboard = () => {
         channel: token.channel,
         query: searchParams.get("query") || undefined,
         filters: {
-          month: searchParams.get("month") || undefined,
+          dateFrom: searchParams.get("dateFrom") || undefined,
+          dateTo: searchParams.get("dateTo") || undefined,
           channel:
             token.channel === "base"
               ? searchParams.get("channel")
@@ -152,7 +153,8 @@ const Dashboard = () => {
       channel: token.channel,
       query: searchParams.get("query") || undefined,
       filters: {
-        month: searchParams.get("month") || undefined,
+        dateFrom: searchParams.get("dateFrom") || undefined,
+        dateTo: searchParams.get("dateTo") || undefined,
         channel: searchParams.get("channel") || undefined,
         type: searchParams.get("type") || undefined,
         payment: searchParams.get("payment") || undefined,

@@ -61,8 +61,8 @@ function formatClientsData(data: any): IOrder[] {
 }
 
 export interface ClientFilters {
-  month?: string;
-  year?: string;
+  dateFrom?: string;
+  dateTo?: string;
   channel?: string;
   internal_channel?: string;
   type?: string;
@@ -114,18 +114,11 @@ export async function getClients({
 
     // Apply filters if provided
     if (filters) {
-      if (filters.month && filters.year) {
-        const startDate = `${filters.year}-${filters.month}-01`;
-        const endDate = new Date(
-          parseInt(filters.year),
-          parseInt(filters.month),
-          0,
-        ).toISOString();
-        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
-      } else if (filters.year) {
-        const startDate = `${filters.year}-01-01`;
-        const endDate = `${filters.year}-12-31`;
-        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      if (filters.dateFrom) {
+        queryBuilder.gte("created_at", filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        queryBuilder.lte("created_at", filters.dateTo);
       }
       if (
         filters.channel &&
@@ -206,18 +199,11 @@ export async function getAllClients({
     }
 
     if (filters) {
-      if (filters.month && filters.year) {
-        const startDate = `${filters.year}-${filters.month}-01`;
-        const endDate = new Date(
-          parseInt(filters.year),
-          parseInt(filters.month),
-          0,
-        ).toISOString();
-        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
-      } else if (filters.year) {
-        const startDate = `${filters.year}-01-01`;
-        const endDate = `${filters.year}-12-31`;
-        queryBuilder.gte("created_at", startDate).lte("created_at", endDate);
+      if (filters.dateFrom) {
+        queryBuilder.gte("created_at", filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        queryBuilder.lte("created_at", filters.dateTo);
       }
 
       if (filters.channel && filters.channel !== "internal") {
