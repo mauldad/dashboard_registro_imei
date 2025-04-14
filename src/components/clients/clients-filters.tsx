@@ -1,4 +1,4 @@
-import { Calendar, Filter } from "lucide-react";
+import { Filter, RotateCcw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -8,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { useMemo } from "react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { Button } from "@/components/ui/button";
 
 interface ClientsFiltersProps {
   channel: string;
@@ -29,22 +29,25 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
     setSearchParams(params);
   };
 
-  const years = useMemo(
-    () =>
-      Array.from({ length: new Date().getFullYear() - 2024 + 1 }, (_, i) => ({
-        value: (2024 + i).toString(),
-        label: (2024 + i).toString(),
-      })),
-    [],
-  );
-  const months = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => ({
-        value: (i + 1).toString().padStart(2, "0"),
-        label: format(new Date(2024, i, 1), "MMMM", { locale: es }),
-      })),
-    [],
-  );
+  const dateRangePickerOnUpdate = (values: {
+    range: DateRange;
+    rangeCompare?: DateRange;
+  }) => {
+    const params = new URLSearchParams(searchParams);
+    if (values.range.from) {
+      const dateFrom = values.range.from
+        .toLocaleString("sv", { timeZone: "America/Santiago" })
+        .split(" ")[0];
+      params.set("dateFrom", dateFrom);
+    }
+    if (values.range.to) {
+      const dateTo = values.range.to
+        .toLocaleString("sv", { timeZone: "America/Santiago" })
+        .split(" ")[0];
+      params.set("dateTo", dateTo);
+    }
+    setSearchParams(params);
+  };
 
   return (
     <section className="pb-4 flex justify-between overflow-x-auto">
@@ -62,43 +65,30 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
       <div className="flex items-center gap-2 2xl:gap-3">
         <Filter className="w-4 h-4 text-muted-foreground" />
         <h2 className="text-md font-medium text-muted-foreground">Filtros</h2>
-        <div className="flex items-center gap-1 2xl:gap-2 pl-3 pr-0 border rounded-lg bg-white">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <Select
-            defaultValue={searchParams.get("month") || "all"}
-            onValueChange={(value) => handleParamChange("month", value)}
+        <div className="flex items-center gap-2">
+          <DateRangePicker
+            onUpdate={dateRangePickerOnUpdate}
+            initialDateFrom={searchParams.get("dateFrom") || "2024-11-01"}
+            initialDateTo={
+              searchParams.get("dateTo") ||
+              new Date().toISOString().split("T")[0]
+            }
+            align="start"
+            locale="es-CL"
+            showCompare={false}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              const params = new URLSearchParams(searchParams);
+              params.delete("dateFrom");
+              params.delete("dateTo");
+              setSearchParams(params);
+            }}
           >
-            <SelectTrigger className="w-[160px] border-0 shadow-none focus:ring-0">
-              <SelectValue placeholder="Seleccionar mes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los meses</SelectItem>
-              {months.map((month) => (
-                <SelectItem key={month.value} value={month.value}>
-                  {month.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-1 2xl:gap-2 pl-3 pr-0 border rounded-lg bg-white">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <Select
-            defaultValue={searchParams.get("year") || "all"}
-            onValueChange={(value) => handleParamChange("year", value)}
-          >
-            <SelectTrigger className="w-[160px] border-0 shadow-none focus:ring-0">
-              <SelectValue placeholder="Seleccionar mes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los años</SelectItem>
-              {years.map((year) => (
-                <SelectItem key={year.value} value={year.value}>
-                  {year.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <RotateCcw className="h-4 w-4" />
+          </Button>
         </div>
 
         {channel === "base" && (
