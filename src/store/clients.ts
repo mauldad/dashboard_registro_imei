@@ -38,8 +38,9 @@ interface ClientState {
     channel?: string;
     query?: string;
     filters?: {
-      month?: string;
-      year?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      channel?: string;
       status?: string;
       payment_status?: string;
     };
@@ -65,8 +66,8 @@ interface ClientState {
       channel?: string;
       query?: string;
       filters?: {
-        month?: string;
-        year?: string;
+        dateFrom?: string;
+        dateTo?: string;
         status?: string;
         payment_status?: string;
       };
