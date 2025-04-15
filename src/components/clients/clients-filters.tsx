@@ -35,15 +35,14 @@ export function ClientsFilters({ channel }: ClientsFiltersProps) {
   }) => {
     const params = new URLSearchParams(searchParams);
     if (values.range.from) {
-      const dateFrom = values.range.from
-        .toLocaleString("sv", { timeZone: "America/Santiago" })
-        .split(" ")[0];
+      const dateFrom = values.range.from.toLocaleString("sv");
       params.set("dateFrom", dateFrom);
     }
     if (values.range.to) {
-      const dateTo = values.range.to
-        .toLocaleString("sv", { timeZone: "America/Santiago" })
-        .split(" ")[0];
+      const dateTo = `${values.range.to.toLocaleString("sv").split(" ")[0]} 23:59:59`;
+      params.set("dateTo", dateTo);
+    } else {
+      const dateTo = `${values.range.from?.toLocaleString("sv").split(" ")[0]} 23:59:59`;
       params.set("dateTo", dateTo);
     }
     setSearchParams(params);
