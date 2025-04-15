@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 
 const Clients = () => {
   const [loading, setLoading] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const token = useAuthStore((state) => state.token) as UserPermissionsToken;
 
@@ -42,6 +42,8 @@ const Clients = () => {
           payment: searchParams.get("payment") || undefined,
           status: searchParams.get("status") || undefined,
         },
+        page: Number(searchParams.get("page")) || 1,
+        limit: Number(searchParams.get("limit")) || pageSize,
       });
       setLoading(false);
     };
@@ -59,38 +61,15 @@ const Clients = () => {
   };
 
   const onPageSizeChange = async (size: number) => {
-    setLoading(true);
-    await fetchClients({
-      channel: token.channel,
-      query: searchParams.get("query") || undefined,
-      filters: {
-        month: searchParams.get("month") || undefined,
-        channel: searchParams.get("channel") || undefined,
-        type: searchParams.get("type") || undefined,
-        payment: searchParams.get("payment") || undefined,
-        status: searchParams.get("status") || undefined,
-      },
-      limit: size,
-    });
-    setLoading(false);
+    const params = new URLSearchParams(searchParams);
+    params.set("limit", size.toString());
+    setSearchParams(params);
   };
 
   const onPageChange = async (page: number) => {
-    setLoading(true);
-    await fetchClients({
-      channel: token.channel,
-      query: searchParams.get("query") || undefined,
-      filters: {
-        month: searchParams.get("month") || undefined,
-        channel: searchParams.get("channel") || undefined,
-        type: searchParams.get("type") || undefined,
-        payment: searchParams.get("payment") || undefined,
-        status: searchParams.get("status") || undefined,
-      },
-      limit: pageSize,
-      page,
-    });
-    setLoading(false);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    setSearchParams(params);
   };
 
   const handleExport = async () => {

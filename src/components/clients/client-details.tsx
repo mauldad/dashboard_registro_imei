@@ -304,7 +304,11 @@ const ClientDetails = ({ order }: DetailsProps) => {
                   Fecha de Creación
                 </span>
                 <p className="text-sm">
-                  {format(new Date(order.created_at), "PPP", { locale: es })}
+                  {format(
+                    new Date(`${order.created_at.split("T")[0]}T00:00:00`),
+                    "PPP",
+                    { locale: es },
+                  )}
                 </p>
               </div>
             </div>

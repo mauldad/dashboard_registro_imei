@@ -43,6 +43,7 @@ interface ClientState {
       channel?: string;
       status?: string;
       payment_status?: string;
+      internal_form?: string;
     };
     page?: number;
     limit?: number;
@@ -70,6 +71,7 @@ interface ClientState {
         dateTo?: string;
         status?: string;
         payment_status?: string;
+        internal_form?: string;
       };
     },
   ) => Promise<void>;
