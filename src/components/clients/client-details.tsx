@@ -322,7 +322,7 @@ const ClientDetails = ({ order }: DetailsProps) => {
             <div className="px-12">
               <Carousel className="mx-auto select-none">
                 <CarouselContent>
-                  {order.Imei.map((imei, index) => (
+                  {order.Imei.slice(0, 2).map((imei, index) => (
                     <CarouselItem
                       key={imei.imei_number}
                       className="cursor-grab"
@@ -375,6 +375,17 @@ const ClientDetails = ({ order }: DetailsProps) => {
                       </div>
                     </CarouselItem>
                   ))}
+                  {order.Imei.length > 2 && (
+                    <CarouselItem>
+                      <div className="p-4 border border-border rounded-md space-y-2">
+                        <div className="flex items-center justify-center h-full">
+                          <span className="text-muted-foreground">
+                            +{order.Imei.length - 2} dispositivos más
+                          </span>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  )}
                 </CarouselContent>
                 <CarouselPrevious />
                 <CarouselNext />
