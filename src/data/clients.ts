@@ -108,7 +108,7 @@ export async function getClients({
     // Apply search query if provided
     if (query) {
       queryBuilder.or(
-        `order_number.ilike.%${query}%,rut.ilike.%${query}%,passport_number.ilike.%${query}%`,
+        `order_number.ilike.%${query}%,rut.ilike.%${query}%,passport_number.ilike.%${query}%,imei.cs.[{"imei_number": "${query}"}]`,
       );
     }
 
@@ -194,7 +194,7 @@ export async function getAllClients({
 
     if (query) {
       queryBuilder.or(
-        `order_number.ilike.%${query}%,rut.ilike.%${query}%,passport_number.ilike.%${query}%`,
+        `order_number.ilike.%${query}%,rut.ilike.%${query}%,passport_number.ilike.%${query}%,imei.cs.[{"imei_number": "${query}"}]`,
       );
     }
 
