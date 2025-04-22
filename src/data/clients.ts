@@ -266,7 +266,8 @@ export async function getClientsStats(
         created_at
       `,
       )
-      .not("Account", "is", null);
+      .not("Account", "is", null)
+      .order("created_at", { ascending: true });
 
     if (filters) {
       if (filters.month && filters.year) {
