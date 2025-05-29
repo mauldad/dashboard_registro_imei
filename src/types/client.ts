@@ -68,6 +68,7 @@ export interface IImei {
   type: string;
   model: string;
   imei_image: string;
+  serial_number: string | null;
 }
 
 interface IAccount {
