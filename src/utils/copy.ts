@@ -1,5 +1,4 @@
-import { IImei } from "@/types/client";
-import { IOrder } from "@/types/order";
+import { IImei, IOrder } from "@/types/client";
 
 interface PersonalOrderData {
   isBusiness: false;
@@ -52,14 +51,22 @@ export const copyBusinessOrder = async (order: IOrder): Promise<void> => {
 };
 
 export const exportImeisToCSV = (imeis: IOrder["Imei"]): string => {
+  const imeiCountBySerial: Record<string, number> = imeis.reduce(
+    (acc, imei) => {
+      acc[imei.serial_number] = (acc[imei.serial_number] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
   const csvContent = imeis
     .map((imei: IImei) => {
-      return [imei.imei_number, imei.brand, imei.model, imei.type].join(",");
+      const imeiCount = imeiCountBySerial[imei.serial_number];
+      return [imei.imei_number, imei.serial_number, imeiCount].join(";");
     })
     .join("\n");
 
-  const header = "IMEI,Marca,Modelo,Tipo,Fecha\n";
-  const blob = new Blob([header + csvContent], {
+  const blob = new Blob([csvContent], {
     type: "text/csv;charset=utf-8;",
   });
   return URL.createObjectURL(blob);

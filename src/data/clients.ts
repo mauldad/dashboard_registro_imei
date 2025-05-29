@@ -37,6 +37,7 @@ function formatClientsData(data: any): IOrder[] {
       type: imei.type,
       model: imei.model,
       imei_image: imei.imei_image,
+      serial_number: imei.serial_number,
     })),
     Account: order.account_id
       ? {
