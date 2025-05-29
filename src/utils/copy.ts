@@ -53,7 +53,8 @@ export const copyBusinessOrder = async (order: IOrder): Promise<void> => {
 export const exportImeisToCSV = (imeis: IOrder["Imei"]): string => {
   const imeiCountBySerial: Record<string, number> = imeis.reduce(
     (acc, imei) => {
-      acc[imei.serial_number] = (acc[imei.serial_number] || 0) + 1;
+      const serialNumber = imei.serial_number || "-";
+      acc[serialNumber] = (acc[serialNumber] || 0) + 1;
       return acc;
     },
     {} as Record<string, number>,
@@ -61,8 +62,9 @@ export const exportImeisToCSV = (imeis: IOrder["Imei"]): string => {
 
   const csvContent = imeis
     .map((imei: IImei) => {
-      const imeiCount = imeiCountBySerial[imei.serial_number];
-      return [imei.imei_number, imei.serial_number, imeiCount].join(";");
+      const serialNumber = imei.serial_number || "-";
+      const imeiCount = imeiCountBySerial[serialNumber];
+      return [imei.imei_number, serialNumber, imeiCount].join(";");
     })
     .join("\n");
 
