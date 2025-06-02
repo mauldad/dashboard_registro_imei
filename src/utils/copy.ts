@@ -10,6 +10,7 @@ interface PersonalOrderData {
   technicalDetails: string;
   description: string;
   nationality: string;
+  serialNumber: string | null;
 }
 
 interface BusinessOrderData {
@@ -34,6 +35,7 @@ export const copyPersonalOrder = async (order: IOrder): Promise<void> => {
     technicalDetails: order.order_number,
     description: "Uso personal",
     nationality: order.Account?.Personal?.nationality || "",
+    serialNumber: order.Imei[0]?.serial_number || null,
   };
   await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
 };
