@@ -141,7 +141,8 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
               imei.imei_number !== originalImei.imei_number ||
               imei.brand !== originalImei.brand ||
               imei.model !== originalImei.model ||
-              imei.type !== originalImei.type
+              imei.type !== originalImei.type ||
+              imei.serial_number != originalImei.serial_number
             );
           }) || values.imeis.length !== order.Imei.length;
 
@@ -151,6 +152,7 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
           const excelFile = createExcelFromImeis(
             values.imeis.map((imei) => ({
               imei_number: imei.imei_number,
+              serial_number: imei.serial_number || "",
               brand: imei.brand,
               model: imei.model,
               type: imei.type || "",
@@ -203,10 +205,9 @@ export const ClientForm: FC<ClientFormProps> = ({ order }) => {
             model: imei.model,
             type: imei.type || "",
             imei_image: imei.imei_image || "",
+            serial_number: imei.serial_number || "",
           })),
         };
-
-        console.log(updatedOrder);
 
         // Update the client in the database
         if (values.is_business) {

@@ -407,6 +407,8 @@ const transformToPersonalUser = (formData: IOrder) => {
         imei_number: imei.imei_number,
         brand: imei.brand,
         model: imei.model,
+        serial_number: imei.serial_number,
+        type: imei.type,
       },
   );
   return {
@@ -432,8 +434,10 @@ const transformToBusinessUser = (formData: IOrder) => {
     (imei) =>
       imei.model && {
         imei_number: imei.imei_number,
+        serial_number: imei.serial_number,
         brand: imei.brand,
         model: imei.model,
+        type: imei.type,
       },
   );
   return {
@@ -497,6 +501,7 @@ export async function updatePersonalUser(formData: IOrder, orderId: number) {
 
 export async function updateBusinessUser(formData: IOrder, orderId: number) {
   const transformedData = transformToBusinessUser(formData);
+  console.log(transformedData);
   const body = (({
     p_rut,
     p_total_paid,
