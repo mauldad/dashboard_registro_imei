@@ -4,6 +4,7 @@ export const imei_schema = z.object({
   imei_number: z.string().min(1, "El número IMEI es requerido"),
   brand: z.string().min(1, "La marca es requerida"),
   model: z.string().min(1, "El modelo es requerido"),
+  serial_number: z.string().nullable(),
   type: z.string().nullable(),
   imei_image: z.string().nullable(),
 });
